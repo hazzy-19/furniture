@@ -1,9 +1,14 @@
-// Aurelle Home - Site and WhatsApp configuration
+// Aurelle Home - Site, contact, and WhatsApp configuration
 export const config = {
   brand: {
     name: 'Aurelle Home',
     tagline: 'Refined Furniture for Modern Living',
     currency: 'KES',
+  },
+  contact: {
+    phone: '+254 700 000 000',
+    email: 'hello@aurellehome.co.ke',
+    locations: 'Nairobi & Mombasa Showrooms',
   },
   whatsapp: {
     // Placeholder Kenyan phone number (+254...)
@@ -15,4 +20,3 @@ export const config = {
 }
 
 export default config
-

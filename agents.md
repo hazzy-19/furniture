@@ -9,7 +9,11 @@ Tailwind CSS, React Router.
 
 ## Hard rule: never run commands
 - Never run any terminal command, for any reason.
-- Never install packages, start the dev server, build, lint, or open a browser.
+-- Approved libraries only: react-router-dom, lucide-react,
+  @radix-ui/react-dialog (drawers and sheets), embla-carousel-react
+  (carousels). Ask before adding anything else.
+- Always end with a "Commands for you to run" section, even if the only
+  command is npm run dev.
 - Never edit package.json to add dependencies by hand.
 - If something needs a command, end your response with a section called
   "Commands for you to run" listing the exact commands, one per line,
@@ -33,6 +37,7 @@ Tailwind CSS, React Router.
   brand-500 #1A8A85 (buttons, links), brand-200 #A9DAD4 (borders, hover),
   brand-50 #EAF6F4 (tiles, tinted sections), gold-500 #E0A526 (badges and
   small highlights only), ink #0E2A2B (text), page #F8FBFA (background).
+  whatsapp #25D366 (floating WhatsApp button only)
 - Fonts: Cormorant Garamond for headings, Inter for body.
 - Mobile hero text must stay short: one headline of about 5 words and one
   button. Extra lines are desktop only.

@@ -10,6 +10,7 @@
   --color-gold-500: #E0A526;
   --color-ink: #0E2A2B;
   --color-page: #F8FBFA;
+  --color-whatsapp: #25D366;
 
   /* Typography tokens */
   --font-heading: "Cormorant Garamond", Georgia, serif;
@@ -20,6 +21,26 @@
   --radius-card: 8px;
   --radius-sm: 4px;
   --radius-md: 8px;
+}
+
+/* Mega-menu crossfade animation */
+@keyframes menu-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-menu-fade {
+  animation: menu-fade 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-menu-fade {
+    animation: none !important;
+  }
 }
 
 /* Page base background, text color, and body font */

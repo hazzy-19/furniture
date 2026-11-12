@@ -22,7 +22,7 @@ export const placeholderProducts = [
     category: 'Bedroom',
     price: 98000,
     badge: 'New',
-    description: 'Serene low-profile frame with a plush upholstered headboard in natural linen tones.',
+    description: 'a bed like you have never seen before, with a serene wood-work.',
   },
 ]
 

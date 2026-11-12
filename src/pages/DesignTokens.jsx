@@ -176,7 +176,7 @@ export default function DesignTokens() {
                 </button>
 
                 {/* Button on Dark (using brand-900) */}
-                <div className="bg-brand-900 p-3 rounded-[4px] flex items-center gap-3">
+                <div className="bg-brand-900 p-3 rounded-[4px] flex flex-wrap items-center gap-3">
                   <button
                     type="button"
                     className="bg-brand-500 hover:bg-brand-700 text-white font-body text-sm font-medium px-4 py-2 rounded-[4px] border border-brand-500 transition-colors"
