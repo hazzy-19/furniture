@@ -1,12 +1,13 @@
-import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Image as ImageIcon } from 'lucide-react'
 import Icon from '../components/Icon.jsx'
+import usePageMeta from '../lib/usePageMeta.js'
 
 export default function AboutPage() {
-  useEffect(() => {
-    document.title = 'About | Aurelle Home'
-  }, [])
+  usePageMeta({
+    title: 'About | Aurelle Home',
+    description: 'The story and values behind Aurelle Home, premium furniture for Kenyan homes.',
+  })
 
   return (
     <div>

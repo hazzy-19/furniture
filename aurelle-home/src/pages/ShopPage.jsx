@@ -1,8 +1,9 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo } from 'react'
 import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { products } from '../data/products.js'
 import { getRoom, getCategory, categorySlug } from '../lib/catalog.js'
 import ProductCard from '../components/ProductCard.jsx'
+import usePageMeta from '../lib/usePageMeta.js'
 
 export default function ShopPage({ mode = 'shop' }) {
   const { room, category } = useParams()
@@ -21,7 +22,7 @@ export default function ShopPage({ mode = 'shop' }) {
   // Determine page title
   let title = 'Shop'
   if (isNotFound) {
-    title = 'Category not found'
+    title = 'Page not found'
   } else if (mode === 'new') {
     title = 'New arrivals'
   } else if (mode === 'sale') {
@@ -32,10 +33,13 @@ export default function ShopPage({ mode = 'shop' }) {
     title = roomObj.label
   }
 
-  // Set document title
-  useEffect(() => {
-    document.title = `${title} | Aurelle Home`
-  }, [title])
+  usePageMeta({
+    title: isNotFound ? 'Page not found | Aurelle Home' : `${title} | Aurelle Home`,
+    description: isNotFound
+      ? 'Page not found.'
+      : `Shop ${title.toLowerCase()} at Aurelle Home. Order on WhatsApp.`,
+    noindex: isNotFound,
+  })
 
   // Base products filtered by mode / room / category
   const baseProducts = useMemo(() => {

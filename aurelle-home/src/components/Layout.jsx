@@ -9,11 +9,17 @@ import FavoriteSheet from './FavoriteSheet.jsx'
 
 export default function Layout() {
   return (
-    <div className="min-h-screen flex flex-col bg-page text-ink font-body">
+    <div className="flex flex-col bg-page text-ink font-body">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-[4px] focus:bg-brand-900 focus:px-4 focus:py-2 focus:text-white"
+      >
+        Skip to main content
+      </a>
       <ScrollToTop />
       <PromoStrip />
       <Header />
-      <main className="flex-1">
+      <main id="main" tabIndex={-1} className="flex-1 outline-none">
         <Outlet />
       </main>
       <EmailSignup />

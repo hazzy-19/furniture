@@ -31,6 +31,7 @@ export default function ProductCard({ product }) {
             src={image}
             alt={name}
             loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover"
           />
         ) : (

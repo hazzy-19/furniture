@@ -1,18 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { MessageCircle, Phone, Mail } from 'lucide-react'
 import Icon from '../components/Icon.jsx'
 import { config } from '../config.js'
 import { showrooms } from '../data/showrooms.js'
 import { buildGeneralUrl, buildMessageUrl } from '../lib/whatsapp.js'
+import usePageMeta from '../lib/usePageMeta.js'
 
 export default function ContactPage() {
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    document.title = 'Contact and showrooms | Aurelle Home'
-  }, [])
+  usePageMeta({
+    title: 'Contact and showrooms | Aurelle Home',
+    description: 'Visit an Aurelle Home showroom, call us, or message us on WhatsApp.',
+  })
 
   const phoneHref = `tel:${config.contact.phone.replace(/[^\d+]/g, '')}`
 

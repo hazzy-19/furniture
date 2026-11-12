@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Image as ImageIcon,
@@ -11,14 +11,17 @@ import Icon from '../components/Icon.jsx'
 import { useOrderList } from '../context/OrderListContext.jsx'
 import { formatKes } from '../lib/format.js'
 import { buildOrderUrl } from '../lib/whatsapp.js'
+import usePageMeta from '../lib/usePageMeta.js'
 
 export default function OrderPage() {
   const { lines, count, total, setQuantity, removeItem, clear } = useOrderList()
   const [deliveryLocation, setDeliveryLocation] = useState('')
 
-  useEffect(() => {
-    document.title = 'Your order list | Aurelle Home'
-  }, [])
+  usePageMeta({
+    title: 'Your order list | Aurelle Home',
+    description: 'Review your order list and send it on WhatsApp.',
+    noindex: true,
+  })
 
   return (
     <div className="mx-auto max-w-6xl px-6 pb-16">
@@ -57,6 +60,8 @@ export default function OrderPage() {
                       <img
                         src={product.image}
                         alt=""
+                        loading="lazy"
+                        decoding="async"
                         className="h-full w-full object-cover"
                       />
                     ) : (

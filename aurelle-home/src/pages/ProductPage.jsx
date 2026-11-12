@@ -15,6 +15,7 @@ import { useOrderList } from '../context/OrderListContext.jsx'
 import { formatKes } from '../lib/format.js'
 import { getProductBySlug, getRelated, getRoom, getCategory } from '../lib/catalog.js'
 import { buildOrderUrl, buildQuestionUrl } from '../lib/whatsapp.js'
+import usePageMeta from '../lib/usePageMeta.js'
 
 function ProductDetail({ product }) {
   const { isFavorite, toggleFavorite } = useFavorites()
@@ -60,10 +61,6 @@ function ProductDetail({ product }) {
   const maxQuantity = Math.min(product.stock, 10)
   const [quantity, setQuantity] = useState(1)
 
-  useEffect(() => {
-    document.title = `${product.name} | Aurelle Home`
-  }, [product.name])
-
   const relatedProducts = getRelated(product, 4)
 
   return (
@@ -107,6 +104,7 @@ function ProductDetail({ product }) {
               <img
                 src={currentImage}
                 alt={product.name}
+                decoding="async"
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -159,7 +157,13 @@ function ProductDetail({ product }) {
                     selectedIndex === i ? 'border-ink' : 'border-brand-200'
                   }`}
                 >
-                  <img src={img} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={img}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -340,11 +344,13 @@ export default function ProductPage() {
   const { slug } = useParams()
   const product = getProductBySlug(slug)
 
-  useEffect(() => {
-    if (!product) {
-      document.title = 'Product not found | Aurelle Home'
-    }
-  }, [product])
+  usePageMeta({
+    title: product ? `${product.name} | Aurelle Home` : 'Product not found | Aurelle Home',
+    description: product
+      ? (product.description ? product.description.slice(0, 155) : '')
+      : 'We could not find that product.',
+    noindex: !product,
+  })
 
   if (!product) {
     return (

@@ -16,22 +16,22 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm text-brand-200">
               <li>
-                <Link to="/shop/living-room" className="hover:text-white transition-colors">
+                <Link to="/shop/living-room" className="hover:text-white transition-colors focus-visible:outline-white">
                   Living room
                 </Link>
               </li>
               <li>
-                <Link to="/shop/dining" className="hover:text-white transition-colors">
+                <Link to="/shop/dining" className="hover:text-white transition-colors focus-visible:outline-white">
                   Dining
                 </Link>
               </li>
               <li>
-                <Link to="/shop/bedroom" className="hover:text-white transition-colors">
+                <Link to="/shop/bedroom" className="hover:text-white transition-colors focus-visible:outline-white">
                   Bedroom
                 </Link>
               </li>
               <li>
-                <Link to="/shop/decor" className="hover:text-white transition-colors">
+                <Link to="/shop/decor" className="hover:text-white transition-colors focus-visible:outline-white">
                   Decor
                 </Link>
               </li>
@@ -45,17 +45,17 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm text-brand-200">
               <li>
-                <Link to="/about" className="hover:text-white transition-colors">
+                <Link to="/about" className="hover:text-white transition-colors focus-visible:outline-white">
                   About us
                 </Link>
               </li>
               <li>
-                <Link to="/showrooms" className="hover:text-white transition-colors">
+                <Link to="/showrooms" className="hover:text-white transition-colors focus-visible:outline-white">
                   Showrooms
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:text-white transition-colors">
+                <Link to="/contact" className="hover:text-white transition-colors focus-visible:outline-white">
                   Contact
                 </Link>
               </li>
@@ -74,7 +74,7 @@ export default function Footer() {
                 </span>
                 <a
                   href={`tel:${config.contact.phone.replace(/[^\d+]/g, '')}`}
-                  className="hover:text-white transition-colors font-medium"
+                  className="hover:text-white transition-colors font-medium focus-visible:outline-white"
                 >
                   {config.contact.phone}
                 </a>
@@ -85,7 +85,7 @@ export default function Footer() {
                 </span>
                 <a
                   href={`mailto:${config.contact.email}`}
-                  className="hover:text-white transition-colors font-medium break-all"
+                  className="hover:text-white transition-colors font-medium break-all focus-visible:outline-white"
                 >
                   {config.contact.email}
                 </a>

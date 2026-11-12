@@ -8,8 +8,7 @@ import ProductPage from './pages/ProductPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
 import AboutPage from './pages/AboutPage.jsx'
 import ContactPage from './pages/ContactPage.jsx'
-import DesignTokens from './pages/DesignTokens.jsx'
-import ComingSoon from './pages/ComingSoon.jsx'
+import NotFoundPage from './pages/NotFoundPage.jsx'
 
 function App() {
   return (
@@ -19,7 +18,6 @@ function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
-              <Route path="/tokens" element={<DesignTokens />} />
               <Route path="/shop/:room" element={<ShopPage />} />
               <Route path="/shop/:room/:category" element={<ShopPage />} />
               <Route path="/new" element={<ShopPage mode="new" />} />
@@ -29,6 +27,7 @@ function App() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/showrooms" element={<ContactPage />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -30,6 +30,8 @@ export default function Hero() {
             <img
               src={imageMobile}
               alt={imageAlt}
+              decoding="async"
+              fetchPriority="high"
               className="h-full w-full object-cover"
             />
           </picture>
