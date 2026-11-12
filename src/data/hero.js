@@ -9,10 +9,9 @@ export const heroData = {
   ctaLabelMobile: "Shop sofas",
   ctaPath: "/shop/living-room/sofas",
   badge: "30% off",
-  imageDesktop: null,
-  imageMobile: null,
+  imageDesktop: "/hero.jpg",
+  imageMobile: "/hero-mobile.jpg",
   imageAlt: "A light-filled living room with a linen sofa",
 }
 
 export default heroData
-

@@ -12,6 +12,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/tokens" element={<DesignTokens />} />
           <Route path="/shop/*" element={<ComingSoon />} />
+          <Route path="/product/*" element={<ComingSoon />} />
           <Route path="/new" element={<ComingSoon />} />
           <Route path="/sale" element={<ComingSoon />} />
         </Route>

@@ -9,6 +9,8 @@ Tailwind CSS, React Router.
 
 ## Hard rule: never run commands
 - Never run any terminal command, for any reason.
+- EVERY response must end with a section titled "Commands for you to run".
+  If there are no new commands, write "npm run dev" there. Never omit it.
 -- Approved libraries only: react-router-dom, lucide-react,
   @radix-ui/react-dialog (drawers and sheets), embla-carousel-react
   (carousels). Ask before adding anything else.
