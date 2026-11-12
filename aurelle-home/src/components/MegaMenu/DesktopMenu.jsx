@@ -5,7 +5,8 @@ import Icon from '../Icon.jsx'
 import { rooms, plainLinks } from '../../data/menu.js'
 
 export default function DesktopMenu() {
-  const [activeRoomId, setActiveRoomId] = useState(null)
+  // activeRoom holds { id, left } when a room menu is open, or null
+  const [activeRoom, setActiveRoom] = useState(null)
   const [activeCategory, setActiveCategory] = useState(null)
 
   const navContainerRef = useRef(null)
@@ -16,8 +17,10 @@ export default function DesktopMenu() {
   const categoryLeaveTimerRef = useRef(null)
   const location = useLocation()
 
-  const activeRoom = rooms.find((room) => room.id === activeRoomId)
-  const activeItem = activeCategory || activeRoom
+  const currentRoom = activeRoom
+    ? rooms.find((room) => room.id === activeRoom.id) || null
+    : null
+  const activeItem = activeCategory || currentRoom
 
   // Clear all pending open and close timers
   const clearTimers = () => {
@@ -35,40 +38,80 @@ export default function DesktopMenu() {
     }
   }
 
+  // Compute anchored left offset relative to navContainerRef
+  const computeLeft = (roomId) => {
+    const triggerEl = triggerRefs.current[roomId]
+    const containerEl = navContainerRef.current
+    if (!triggerEl || !containerEl) return 0
+
+    const triggerRect = triggerEl.getBoundingClientRect()
+    const containerRect = containerEl.getBoundingClientRect()
+
+    const desired = triggerRect.left
+    const maxLeft = window.innerWidth - 500 - 16
+    const clamped = Math.max(16, Math.min(desired, maxLeft))
+    return clamped - containerRect.left
+  }
+
+  // Open a room: compute left in the same handler that sets the active room
+  const openRoom = (roomId) => {
+    const left = computeLeft(roomId)
+    setActiveRoom({ id: roomId, left })
+  }
+
+  // Close the room
+  const closeRoom = () => {
+    setActiveRoom(null)
+    setActiveCategory(null)
+  }
+
   // Close panel on route change
   useEffect(() => {
     clearTimers()
-    setActiveRoomId(null)
-    setActiveCategory(null)
+    closeRoom()
   }, [location.pathname])
 
   // Reset activeCategory when the active room changes
   useEffect(() => {
     setActiveCategory(null)
-  }, [activeRoomId])
+  }, [activeRoom?.id])
 
   // Preload images of categories that have image URLs when a room's panel opens
   useEffect(() => {
-    if (!activeRoom) return
-    activeRoom.categories.forEach((cat) => {
+    if (!currentRoom) return
+    currentRoom.categories.forEach((cat) => {
       if (cat.image) {
         const img = new window.Image()
         img.src = cat.image
       }
     })
-    if (activeRoom.image) {
+    if (currentRoom.image) {
       const img = new window.Image()
-      img.src = activeRoom.image
+      img.src = currentRoom.image
     }
-  }, [activeRoomId, activeRoom])
+  }, [currentRoom])
+
+  // Recompute left for the active room on window resize (active only while open)
+  useEffect(() => {
+    if (!activeRoom) return
+
+    const handleResize = () => {
+      const left = computeLeft(activeRoom.id)
+      setActiveRoom((prev) => (prev ? { ...prev, left } : null))
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [activeRoom?.id])
 
   // Close panel on outside click
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (navContainerRef.current && !navContainerRef.current.contains(e.target)) {
         clearTimers()
-        setActiveRoomId(null)
-        setActiveCategory(null)
+        closeRoom()
       }
     }
 
@@ -79,14 +122,14 @@ export default function DesktopMenu() {
     }
   }, [])
 
-  // Open with ~150ms delay on hover/focus
+  // Open with ~150ms delay on hover/focus (instant switch if already open)
   const handleTriggerMouseEnter = (roomId) => {
     clearTimers()
-    if (activeRoomId) {
-      setActiveRoomId(roomId)
+    if (activeRoom) {
+      openRoom(roomId)
     } else {
       openTimerRef.current = setTimeout(() => {
-        setActiveRoomId(roomId)
+        openRoom(roomId)
       }, 150)
     }
   }
@@ -98,8 +141,7 @@ export default function DesktopMenu() {
       openTimerRef.current = null
     }
     closeTimerRef.current = setTimeout(() => {
-      setActiveRoomId(null)
-      setActiveCategory(null)
+      closeRoom()
     }, 150)
   }
 
@@ -114,8 +156,7 @@ export default function DesktopMenu() {
   // Start close timer when mouse leaves panel
   const handlePanelMouseLeave = () => {
     closeTimerRef.current = setTimeout(() => {
-      setActiveRoomId(null)
-      setActiveCategory(null)
+      closeRoom()
     }, 150)
   }
 
@@ -158,7 +199,7 @@ export default function DesktopMenu() {
     if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
       e.preventDefault()
       clearTimers()
-      setActiveRoomId(roomId)
+      openRoom(roomId)
       setTimeout(() => {
         if (firstLinkRef.current) {
           firstLinkRef.current.focus()
@@ -167,8 +208,7 @@ export default function DesktopMenu() {
     } else if (e.key === 'Escape') {
       e.preventDefault()
       clearTimers()
-      setActiveRoomId(null)
-      setActiveCategory(null)
+      closeRoom()
     }
   }
 
@@ -177,9 +217,8 @@ export default function DesktopMenu() {
     if (e.key === 'Escape') {
       e.preventDefault()
       clearTimers()
-      const currentTrigger = triggerRefs.current[activeRoomId]
-      setActiveRoomId(null)
-      setActiveCategory(null)
+      const currentTrigger = triggerRefs.current[activeRoom?.id]
+      closeRoom()
       if (currentTrigger) {
         currentTrigger.focus()
       }
@@ -189,10 +228,13 @@ export default function DesktopMenu() {
   return (
     <div ref={navContainerRef} className="relative">
       {/* Desktop Main Navigation Bar */}
-      <nav aria-label="Main category navigation" className="max-w-7xl mx-auto px-6 h-11 flex items-center justify-center gap-8 text-sm font-medium">
-        {/* Rooms with dropdown panel */}
+      <nav
+        aria-label="Main category navigation"
+        className="max-w-7xl mx-auto px-6 h-11 flex items-center justify-center gap-8 text-sm font-medium"
+      >
+        {/* Rooms with anchored dropdown card */}
         {rooms.map((room) => {
-          const isOpen = activeRoomId === room.id
+          const isOpen = activeRoom?.id === room.id
           return (
             <button
               key={room.id}
@@ -203,7 +245,11 @@ export default function DesktopMenu() {
               aria-haspopup="true"
               onClick={() => {
                 clearTimers()
-                setActiveRoomId(isOpen ? null : room.id)
+                if (isOpen) {
+                  closeRoom()
+                } else {
+                  openRoom(room.id)
+                }
               }}
               onMouseEnter={() => handleTriggerMouseEnter(room.id)}
               onMouseLeave={handleTriggerMouseLeave}
@@ -233,13 +279,11 @@ export default function DesktopMenu() {
             to={link.path}
             onMouseEnter={() => {
               clearTimers()
-              setActiveRoomId(null)
-              setActiveCategory(null)
+              closeRoom()
             }}
             onFocus={() => {
               clearTimers()
-              setActiveRoomId(null)
-              setActiveCategory(null)
+              closeRoom()
             }}
             className={`py-2 px-1 text-sm font-medium transition-colors hover:text-brand-500 focus:outline-none focus-visible:underline ${
               link.isHighlighted ? 'text-brand-500 font-semibold' : 'text-ink'
@@ -250,53 +294,52 @@ export default function DesktopMenu() {
         ))}
       </nav>
 
-      {/* ONE Shared Full-Width Panel (renders only the active room) */}
-      {activeRoom && (
+      {/* ONE Shared Anchored Card (rendered only when activeRoom exists) */}
+      {currentRoom && activeRoom && (
         <div
+          style={{ left: activeRoom.left }}
+          className="absolute top-full z-40 mt-1 w-[500px] rounded-lg border-2 border-ink bg-page transition-[left,opacity] duration-150 motion-reduce:transition-none"
           id="desktop-megamenu-panel"
           role="region"
-          aria-label={`${activeRoom.label} menu`}
+          aria-label={`${currentRoom.label} menu`}
           onMouseEnter={handlePanelMouseEnter}
           onMouseLeave={handlePanelMouseLeave}
           onKeyDown={handlePanelKeyDown}
-          className="absolute left-0 right-0 top-full z-40 bg-page border-b-2 border-ink max-h-[70vh] overflow-y-auto"
         >
-          {/* Inner Structure: exact 48px (gap-12) gap, max-w-4xl, py-5 */}
-          <div className="mx-auto flex max-w-4xl items-start justify-center gap-12 px-6 py-5">
-            {/* Category list (left, 380px wide) */}
-            <div className="w-[380px] shrink-0">
+          <div className="flex min-h-[240px] gap-4 p-4">
+            {/* Categories block: single column <ul> */}
+            <div className="w-[200px] shrink-0">
               <p className="mb-2 text-xs font-medium uppercase tracking-wide text-brand-700">
-                Categories in {activeRoom.label}
+                Categories in {currentRoom.label}
               </p>
-              <div
-                className="grid grid-cols-2 gap-x-10 gap-y-0.5"
+              <ul
                 onMouseLeave={handleLinkListMouseLeave}
                 onMouseEnter={clearCategoryLeaveTimer}
                 onBlur={handleLinkListBlur}
               >
-                {activeRoom.categories.map((category, idx) => (
-                  <Link
-                    key={category.path}
-                    ref={idx === 0 ? firstLinkRef : null}
-                    to={category.path}
-                    onMouseEnter={() => handleCategoryMouseEnter(category)}
-                    onFocus={() => handleCategoryFocus(category)}
-                    onClick={() => {
-                      clearTimers()
-                      setActiveRoomId(null)
-                      setActiveCategory(null)
-                    }}
-                    className="block py-1.5 text-base text-ink hover:text-brand-500"
-                  >
-                    {category.label}
-                  </Link>
+                {currentRoom.categories.map((category, idx) => (
+                  <li key={category.path}>
+                    <Link
+                      ref={idx === 0 ? firstLinkRef : null}
+                      to={category.path}
+                      onMouseEnter={() => handleCategoryMouseEnter(category)}
+                      onFocus={() => handleCategoryFocus(category)}
+                      onClick={() => {
+                        clearTimers()
+                        closeRoom()
+                      }}
+                      className="block py-1.5 text-base text-ink hover:text-brand-500"
+                    >
+                      {category.label}
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
 
-            {/* Featured card (right, 260px wide by 170px high, exact) */}
+            {/* Preview block: 248px wide by 200px high */}
             <div
-              className="h-[170px] w-[260px] shrink-0 overflow-hidden rounded-lg border border-brand-200 bg-brand-200"
+              className="h-[200px] w-[248px] shrink-0 overflow-hidden rounded-[4px] border border-brand-200 bg-brand-200"
               aria-hidden="true"
             >
               {activeItem &&
