@@ -45,3 +45,15 @@ export function buildQuestionUrl(product) {
 
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`
 }
+
+export function buildGeneralUrl() {
+  const number = getSanitizedWhatsAppNumber()
+  const message = 'Hello Aurelle Home, I would like some help.'
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`
+}
+
+export function buildMessageUrl({ name, message }) {
+  const number = getSanitizedWhatsAppNumber()
+  const text = `Hello Aurelle Home, my name is ${name}.\n${message}`
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+}

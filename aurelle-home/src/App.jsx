@@ -6,6 +6,8 @@ import Home from './pages/Home.jsx'
 import ShopPage from './pages/ShopPage.jsx'
 import ProductPage from './pages/ProductPage.jsx'
 import OrderPage from './pages/OrderPage.jsx'
+import AboutPage from './pages/AboutPage.jsx'
+import ContactPage from './pages/ContactPage.jsx'
 import DesignTokens from './pages/DesignTokens.jsx'
 import ComingSoon from './pages/ComingSoon.jsx'
 
@@ -24,6 +26,9 @@ function App() {
               <Route path="/sale" element={<ShopPage mode="sale" />} />
               <Route path="/product/:slug" element={<ProductPage />} />
               <Route path="/order" element={<OrderPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/showrooms" element={<ContactPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

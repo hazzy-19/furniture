@@ -16,22 +16,22 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm text-brand-200">
               <li>
-                <Link to="#" className="hover:text-white transition-colors">
+                <Link to="/shop/living-room" className="hover:text-white transition-colors">
                   Living room
                 </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-white transition-colors">
+                <Link to="/shop/dining" className="hover:text-white transition-colors">
                   Dining
                 </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-white transition-colors">
+                <Link to="/shop/bedroom" className="hover:text-white transition-colors">
                   Bedroom
                 </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-white transition-colors">
+                <Link to="/shop/decor" className="hover:text-white transition-colors">
                   Decor
                 </Link>
               </li>
@@ -45,17 +45,17 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm text-brand-200">
               <li>
-                <Link to="#" className="hover:text-white transition-colors">
+                <Link to="/about" className="hover:text-white transition-colors">
                   About us
                 </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-white transition-colors">
+                <Link to="/showrooms" className="hover:text-white transition-colors">
                   Showrooms
                 </Link>
               </li>
               <li>
-                <Link to="#" className="hover:text-white transition-colors">
+                <Link to="/contact" className="hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>
@@ -73,7 +73,7 @@ export default function Footer() {
                   Phone
                 </span>
                 <a
-                  href={`tel:${config.contact.phone.replace(/\s+/g, '')}`}
+                  href={`tel:${config.contact.phone.replace(/[^\d+]/g, '')}`}
                   className="hover:text-white transition-colors font-medium"
                 >
                   {config.contact.phone}
