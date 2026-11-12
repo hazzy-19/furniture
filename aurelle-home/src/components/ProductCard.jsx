@@ -1,11 +1,11 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, Image as ImageIcon } from 'lucide-react'
 import Icon from './Icon.jsx'
 import { formatKes } from '../lib/format.js'
+import { useFavorites } from '../context/FavoritesContext.jsx'
 
-export default function ProductCard({ product, onToggleFavorite }) {
-  const [isFavorite, setIsFavorite] = useState(false)
+export default function ProductCard({ product }) {
+  const { isFavorite, toggleFavorite } = useFavorites()
 
   if (!product) return null
 
@@ -20,10 +20,7 @@ export default function ProductCard({ product, onToggleFavorite }) {
     lowStockThreshold,
   } = product
 
-  const handleToggleFavorite = () => {
-    setIsFavorite((prev) => !prev)
-    onToggleFavorite?.(product)
-  }
+  const isFav = isFavorite(product.id)
 
   return (
     <article className="group">
@@ -60,15 +57,15 @@ export default function ProductCard({ product, onToggleFavorite }) {
         {/* Favorite Heart Button */}
         <button
           type="button"
-          onClick={handleToggleFavorite}
+          onClick={() => toggleFavorite(product)}
           className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-[4px] bg-white text-ink hover:text-brand-500 cursor-pointer transition-colors"
           aria-label={`Add ${name} to favorites`}
-          aria-pressed={isFavorite}
+          aria-pressed={isFav}
         >
           <Icon
             icon={Heart}
             size={20}
-            className={isFavorite ? 'fill-brand-500 text-brand-500' : ''}
+            className={isFav ? 'fill-brand-500 text-brand-500' : ''}
           />
         </button>
       </div>
@@ -97,4 +94,3 @@ export default function ProductCard({ product, onToggleFavorite }) {
     </article>
   )
 }
-

@@ -4,9 +4,13 @@ import { Menu, Search, Heart, User, ShoppingBag } from 'lucide-react'
 import Icon from './Icon.jsx'
 import DesktopMenu from './MegaMenu/DesktopMenu.jsx'
 import MobileDrawer from './MegaMenu/MobileDrawer.jsx'
+import { useFavorites } from '../context/FavoritesContext.jsx'
+import { useOrderList } from '../context/OrderListContext.jsx'
 
 export default function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const { count: favoritesCount } = useFavorites()
+  const { count: orderCount } = useOrderList()
 
   return (
     <>
@@ -63,10 +67,15 @@ export default function Header() {
             {/* Favorites Button */}
             <button
               type="button"
-              aria-label="Favorites"
-              className="p-1.5 sm:p-2 rounded-[4px] text-ink hover:bg-brand-50 transition-colors cursor-pointer"
+              aria-label={`Favorites, ${favoritesCount} saved`}
+              className="relative p-1.5 sm:p-2 rounded-[4px] text-ink hover:bg-brand-50 transition-colors cursor-pointer"
             >
               <Icon icon={Heart} size={20} />
+              {favoritesCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-[4px] bg-gold-500 px-1 text-[10px] font-medium text-brand-900">
+                  {favoritesCount}
+                </span>
+              )}
             </button>
 
             {/* User Account Button */}
@@ -78,14 +87,19 @@ export default function Header() {
               <Icon icon={User} size={20} />
             </button>
 
-            {/* Shopping Bag Button */}
-            <button
-              type="button"
-              aria-label="Shopping bag"
-              className="p-1.5 sm:p-2 rounded-[4px] text-ink hover:bg-brand-50 transition-colors cursor-pointer"
+            {/* Shopping Bag / Order List Link */}
+            <Link
+              to="/order"
+              aria-label={`Order list, ${orderCount} ${orderCount === 1 ? 'item' : 'items'}`}
+              className="relative p-1.5 sm:p-2 rounded-[4px] text-ink hover:bg-brand-50 transition-colors cursor-pointer"
             >
               <Icon icon={ShoppingBag} size={20} />
-            </button>
+              {orderCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-[4px] bg-gold-500 px-1 text-[10px] font-medium text-brand-900">
+                  {orderCount}
+                </span>
+              )}
+            </Link>
           </div>
         </div>
 

@@ -7,21 +7,6 @@ export default function Footer() {
   return (
     <footer className="bg-brand-900 text-brand-50 mt-auto border-t border-brand-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        {/* Placeholder: Email signup block to be built in a future piece */}
-        <section
-          aria-label="News Subscription"
-          className="border border-dashed border-brand-700/80 rounded-[8px] p-6 md:p-8 mb-12 text-center bg-brand-900/60"
-        >
-          <div className="max-w-md mx-auto">
-            <h3 className="font-heading text-xl md:text-2xl font-semibold text-brand-50">
-              Aurelle Inner Circle
-            </h3>
-            <p className="text-xs text-brand-200/80 mt-1">
-              [Email signup block will be implemented in a future piece]
-            </p>
-          </div>
-        </section>
-
         {/* Footer Navigation Columns: stacks on mobile, 3 columns on desktop */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 pb-12 border-b border-brand-700/70">
           {/* Column 1: Shop */}
