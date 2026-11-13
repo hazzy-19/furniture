@@ -2,12 +2,14 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ChevronDown, Image as ImageIcon } from 'lucide-react'
 import Icon from '../Icon.jsx'
-import { rooms, plainLinks } from '../../data/menu.js'
+import { useMenu } from '../../context/MenuContext.jsx'
 
 export default function DesktopMenu() {
   // activeRoom holds { id, left } when a room menu is open, or null
   const [activeRoom, setActiveRoom] = useState(null)
   const [activeCategory, setActiveCategory] = useState(null)
+
+  const { rooms, plainLinks } = useMenu()
 
   const navContainerRef = useRef(null)
   const triggerRefs = useRef({})
@@ -256,17 +258,15 @@ export default function DesktopMenu() {
               onFocus={() => handleTriggerMouseEnter(room.id)}
               onBlur={handleTriggerMouseLeave}
               onKeyDown={(e) => handleTriggerKeyDown(e, room.id)}
-              className={`inline-flex items-center gap-1.5 py-2 px-1 text-sm font-medium transition-colors cursor-pointer focus:outline-none focus-visible:underline ${
-                isOpen ? 'text-brand-500 font-semibold' : 'text-ink hover:text-brand-500'
-              }`}
+              className={`inline-flex items-center gap-1.5 py-2 px-1 text-sm font-medium transition-colors cursor-pointer focus:outline-none focus-visible:underline ${isOpen ? 'text-brand-500 font-semibold' : 'text-ink hover:text-brand-500'
+                }`}
             >
               <span>{room.label}</span>
               <Icon
                 icon={ChevronDown}
                 size={14}
-                className={`transition-transform duration-200 motion-reduce:transition-none ${
-                  isOpen ? 'rotate-180 text-brand-500' : 'text-ink/60'
-                }`}
+                className={`transition-transform duration-200 motion-reduce:transition-none ${isOpen ? 'rotate-180 text-brand-500' : 'text-ink/60'
+                  }`}
               />
             </button>
           )
@@ -285,9 +285,8 @@ export default function DesktopMenu() {
               clearTimers()
               closeRoom()
             }}
-            className={`py-2 px-1 text-sm font-medium transition-colors hover:text-brand-500 focus:outline-none focus-visible:underline ${
-              link.isHighlighted ? 'text-brand-500 font-semibold' : 'text-ink'
-            }`}
+            className={`py-2 px-1 text-sm font-medium transition-colors hover:text-brand-500 focus:outline-none focus-visible:underline ${link.isHighlighted ? 'text-brand-500 font-semibold' : 'text-ink'
+              }`}
           >
             {link.label}
           </Link>

@@ -2,7 +2,7 @@
 
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, Integer, String, Text, Uuid, text
+from sqlalchemy import Boolean, Integer, String, Text, Uuid, text as sql_text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -20,7 +20,7 @@ class Showroom(Base):
     opening_hours: Mapped[str] = mapped_column(Text, nullable=False)
     map_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     sort_order: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0, server_default=text("0")
+        Integer, nullable=False, default=0, server_default=sql_text("0")
     )
 
 
@@ -30,10 +30,10 @@ class PromoMessage(Base):
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
     text: Mapped[str] = mapped_column(String(500), nullable=False)
     sort_order: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0, server_default=text("0")
+        Integer, nullable=False, default=0, server_default=sql_text("0")
     )
     is_active: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True, server_default=text("true")
+        Boolean, nullable=False, default=True, server_default=sql_text("true")
     )
 
 
@@ -49,5 +49,5 @@ class HeroBanner(Base):
     image_url_desktop: Mapped[str] = mapped_column(String(2048), nullable=False)
     image_url_mobile: Mapped[str] = mapped_column(String(2048), nullable=False)
     is_active: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=True, server_default=text("true")
+        Boolean, nullable=False, default=True, server_default=sql_text("true")
     )

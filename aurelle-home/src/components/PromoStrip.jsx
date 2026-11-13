@@ -1,38 +1,63 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { getPromos } from '../lib/api.js'
 
-const PROMO_MESSAGES = [
+const DEFAULT_PROMO_MESSAGES = [
   'Free delivery in Nairobi and Mombasa',
   'New arrivals every week',
   'Visit our showrooms',
 ]
 
 export default function PromoStrip() {
+  const [promoMessages, setPromoMessages] = useState(DEFAULT_PROMO_MESSAGES)
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
 
-  // Rotate promo messages on mobile every 4 seconds
+  useEffect(() => {
+    let ignoreResult = false
+
+    getPromos()
+      .then((messages) => {
+        if (!ignoreResult && Array.isArray(messages) && messages.length > 0) {
+          setPromoMessages(messages)
+          setCurrentMessageIndex(0)
+        }
+      })
+      .catch((error) => {
+        console.error('Could not load promotions:', error)
+      })
+
+    return () => {
+      ignoreResult = true
+    }
+  }, [])
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentMessageIndex((prevIndex) => (prevIndex + 1) % PROMO_MESSAGES.length)
+      setCurrentMessageIndex(
+        (previousIndex) => (previousIndex + 1) % promoMessages.length
+      )
     }, 4000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [promoMessages.length])
 
   return (
     <div
       role="region"
       aria-label="Promotions"
-      className="bg-brand-50 text-ink text-xs font-medium border-b border-brand-200 select-none"
+      className="select-none border-b border-brand-200 bg-brand-50 text-xs font-medium text-ink"
     >
-      <div className="max-w-7xl mx-auto px-4 py-2">
-        {/* Mobile View: single message rotating every 4 seconds */}
-        <div className="md:hidden text-center min-h-[1.25rem] flex items-center justify-center" aria-live="polite">
-          <span>{PROMO_MESSAGES[currentMessageIndex]}</span>
+      <div className="mx-auto max-w-7xl px-4 py-2">
+        {/* Mobile: rotate through the messages */}
+        <div
+          className="flex min-h-[1.25rem] items-center justify-center text-center md:hidden"
+          aria-live="polite"
+        >
+          <span>{promoMessages[currentMessageIndex]}</span>
         </div>
 
-        {/* Desktop View: all 3 messages in a row separated by thin vertical dividers */}
-        <div className="hidden md:flex items-center justify-center divide-x divide-brand-200">
-          {PROMO_MESSAGES.map((message) => (
+        {/* Desktop: show every message */}
+        <div className="hidden items-center justify-center divide-x divide-brand-200 md:flex">
+          {promoMessages.map((message) => (
             <div key={message} className="px-6 text-center">
               <span>{message}</span>
             </div>
@@ -42,4 +67,3 @@ export default function PromoStrip() {
     </div>
   )
 }
-

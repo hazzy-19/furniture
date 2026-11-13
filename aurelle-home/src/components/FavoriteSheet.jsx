@@ -96,7 +96,7 @@ export default function FavoriteSheet() {
                 Saved
               </h3>
               <p className="mt-2 text-sm text-ink/70">
-                Check your inbox to confirm your email so we can send alerts.
+                Your favorite is saved on this device. We'll email you when alerts start.
               </p>
               <button
                 type="button"

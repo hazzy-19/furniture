@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom'
 import * as Dialog from '@radix-ui/react-dialog'
 import { ChevronRight, ChevronLeft, X } from 'lucide-react'
 import Icon from '../Icon.jsx'
-import { rooms, plainLinks } from '../../data/menu.js'
+import { useMenu } from '../../context/MenuContext.jsx'
 
 export default function MobileDrawer({ isOpen, onOpenChange }) {
+  const { rooms, plainLinks } = useMenu()
   // Level 1: null (all rooms). Level 2: room object
   const [selectedRoom, setSelectedRoom] = useState(null)
+
 
   const handleOpenChange = (open) => {
     onOpenChange(open)
@@ -83,11 +85,10 @@ export default function MobileDrawer({ isOpen, onOpenChange }) {
                       key={link.path}
                       to={link.path}
                       onClick={handleLinkClick}
-                      className={`block py-3 px-4 text-base font-medium border-b border-brand-50 transition-colors ${
-                        link.isHighlighted
-                          ? 'text-brand-500 font-semibold'
-                          : 'text-ink hover:text-brand-500'
-                      }`}
+                      className={`block py-3 px-4 text-base font-medium border-b border-brand-50 transition-colors ${link.isHighlighted
+                        ? 'text-brand-500 font-semibold'
+                        : 'text-ink hover:text-brand-500'
+                        }`}
                     >
                       {link.label}
                     </Link>

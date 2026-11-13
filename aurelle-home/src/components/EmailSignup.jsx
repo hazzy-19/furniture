@@ -8,10 +8,10 @@ export default function EmailSignup() {
   const { saveSubscriber } = useFavorites()
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [status, setStatus] = useState({ type: 'idle', message: '' }) // 'idle' | 'success' | 'error'
+  const [status, setStatus] = useState({ type: 'idle', message: '' })
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (event) => {
+    event.preventDefault()
     const trimmedEmail = email.trim()
 
     if (!EMAIL_REGEX.test(trimmedEmail)) {
@@ -25,15 +25,15 @@ export default function EmailSignup() {
     setIsSubmitting(true)
     setStatus({ type: 'idle', message: '' })
 
-    try {
-      const subscriberData = {
-        email: trimmedEmail,
-        wantsNewArrivals: true,
-        wantsHotItems: true,
-        wantsLowStock: true,
-      }
+    const subscriberData = {
+      email: trimmedEmail,
+      wantsNewArrivals: true,
+      wantsHotItems: true,
+      wantsLowStock: true,
+    }
 
-      await subscribe({
+    try {
+      const result = await subscribe({
         ...subscriberData,
         source: 'footer_signup',
       })
@@ -42,9 +42,9 @@ export default function EmailSignup() {
       setEmail('')
       setStatus({
         type: 'success',
-        message: 'Check your inbox to confirm your email.',
+        message: "You're on the list. We'll email you when alerts start.",
       })
-    } catch (err) {
+    } catch (error) {
       setStatus({
         type: 'error',
         message: 'Something went wrong. Please try again.',
@@ -57,7 +57,6 @@ export default function EmailSignup() {
   return (
     <section className="border-y border-brand-200 bg-brand-50">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
-        {/* Left text block */}
         <div>
           <h2 className="font-heading text-2xl text-brand-900 md:text-3xl">
             Get first access to new arrivals
@@ -67,14 +66,14 @@ export default function EmailSignup() {
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} noValidate className="w-full md:w-auto">
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="email"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
+              onChange={(event) => {
+                setEmail(event.target.value)
+
                 if (status.type === 'error') {
                   setStatus({ type: 'idle', message: '' })
                 }
@@ -84,10 +83,11 @@ export default function EmailSignup() {
               disabled={isSubmitting}
               className="h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base sm:w-72"
             />
+
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-12 rounded-[4px] bg-brand-900 px-6 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 cursor-pointer transition-colors"
+              className="h-12 cursor-pointer rounded-[4px] bg-brand-900 px-6 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
             >
               {isSubmitting ? 'Signing up...' : 'Sign me up'}
             </button>
@@ -101,9 +101,8 @@ export default function EmailSignup() {
           {status.message && (
             <p
               aria-live="polite"
-              className={`mt-2 text-sm ${
-                status.type === 'success' ? 'text-brand-700' : 'text-red-700'
-              }`}
+              className={`mt-2 text-sm ${status.type === 'success' ? 'text-brand-700' : 'text-red-700'
+                }`}
             >
               {status.message}
             </p>
@@ -113,4 +112,3 @@ export default function EmailSignup() {
     </section>
   )
 }
-

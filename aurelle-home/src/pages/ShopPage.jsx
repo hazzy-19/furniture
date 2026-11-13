@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useParams, useSearchParams, Link } from 'react-router-dom'
-import { products } from '../data/products.js'
+import { getProducts } from '../lib/api.js'
 import { getRoom, getCategory, categorySlug } from '../lib/catalog.js'
 import ProductCard from '../components/ProductCard.jsx'
 import usePageMeta from '../lib/usePageMeta.js'
@@ -8,6 +8,30 @@ import usePageMeta from '../lib/usePageMeta.js'
 export default function ShopPage({ mode = 'shop' }) {
   const { room, category } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
+
+
+  const [products, setProducts] = useState([])
+  const [productsLoading, setProductsLoading] = useState(true)
+  const [productsError, setProductsError] = useState('')
+
+  useEffect(() => {
+    let ignoreResult = false
+
+    getProducts()
+      .then((data) => {
+        if (!ignoreResult) setProducts(data)
+      })
+      .catch((error) => {
+        if (!ignoreResult) setProductsError(error.message)
+      })
+      .finally(() => {
+        if (!ignoreResult) setProductsLoading(false)
+      })
+
+    return () => {
+      ignoreResult = true
+    }
+  }, [])
 
   const instock = searchParams.get('instock')
   const sort = searchParams.get('sort') || ''
