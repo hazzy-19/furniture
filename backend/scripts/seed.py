@@ -11,6 +11,7 @@ from app.models import (
     Product,
     ProductStatus,
     PromoMessage,
+    Showroom,
 )
 
 
@@ -228,6 +229,36 @@ PROMOS = [
 ]
 
 
+SHOWROOMS = [
+    {
+        "name": "Aurelle Home Nairobi",
+        "city": "Nairobi",
+        "area": "Westlands, Nairobi",
+        "address": "Westlands, Nairobi",
+        "phone": "+254 700 000 000",
+        "whatsapp_number": "+254 700 000 000",
+        "opening_hours": [
+            {"days": "Monday to Saturday", "time": "9:00 am to 6:00 pm"},
+            {"days": "Sunday", "time": "11:00 am to 4:00 pm"},
+        ],
+        "sort_order": 0,
+    },
+    {
+        "name": "Aurelle Home Mombasa",
+        "city": "Mombasa",
+        "area": "Nyali, Mombasa",
+        "address": "Nyali, Mombasa",
+        "phone": "+254 700 000 000",
+        "whatsapp_number": "+254 700 000 000",
+        "opening_hours": [
+            {"days": "Monday to Saturday", "time": "9:00 am to 6:00 pm"},
+            {"days": "Sunday", "time": "11:00 am to 4:00 pm"},
+        ],
+        "sort_order": 1,
+    },
+]
+
+
 def seed_database() -> None:
     now = datetime.now(timezone.utc)
 
@@ -245,7 +276,6 @@ def seed_database() -> None:
                 db.add(room)
 
             room.name = room_data["name"]
-            room.blurb = room_data["blurb"]
             room.image_url = None
             room.parent_id = None
             room.sort_order = room_order
@@ -267,7 +297,6 @@ def seed_database() -> None:
                     db.add(category)
 
                 category.name = name
-                category.blurb = None
                 category.image_url = None
                 category.parent_id = parent.id
                 category.sort_order = category_order
@@ -322,7 +351,7 @@ def seed_database() -> None:
                 products_by_slug[product_slug].id
             )
 
-        # Add the homepage hero if there is no active one already.
+        # Add or update the homepage hero.
         hero = db.scalar(
             select(HeroBanner)
             .where(HeroBanner.is_active.is_(True))
@@ -330,18 +359,20 @@ def seed_database() -> None:
         )
 
         if hero is None:
-            db.add(
-                HeroBanner(
-                    headline_desktop="Furnish your home with quiet luxury",
-                    headline_mobile="Quiet luxury for your home",
-                    subtext="Sofas from KES 89,000",
-                    cta_label="Shop the collection",
-                    cta_url="/shop/living-room/sofas",
-                    image_url_desktop="/hero.jpg",
-                    image_url_mobile="/hero-mobile.jpg",
-                    is_active=True,
-                )
-            )
+            hero = HeroBanner()
+            db.add(hero)
+
+        hero.eyebrow = "The new collection"
+        hero.headline_desktop = "Furnish your home with quiet luxury"
+        hero.headline_mobile = "Quiet luxury for your home"
+        hero.subtext = "Sofas from KES 89,000"
+        hero.cta_label = "Shop the collection"
+        hero.cta_label_mobile = "Shop sofas"
+        hero.cta_url = "/shop/living-room/sofas"
+        hero.badge = "30% off"
+        hero.image_url_desktop = "/hero.jpg"
+        hero.image_url_mobile = "/hero-mobile.jpg"
+        hero.is_active = True
 
         # Insert each promo only if it is not already present.
         for sort_order, promo_text in enumerate(PROMOS):
@@ -357,6 +388,24 @@ def seed_database() -> None:
                         is_active=True,
                     )
                 )
+
+        # Seed showrooms idempotently.
+        for showroom_data in SHOWROOMS:
+            showroom = db.scalar(
+                select(Showroom).where(Showroom.city == showroom_data["city"])
+            )
+
+            if showroom is None:
+                showroom = Showroom(city=showroom_data["city"])
+                db.add(showroom)
+
+            showroom.name = showroom_data["name"]
+            showroom.area = showroom_data["area"]
+            showroom.address = showroom_data["address"]
+            showroom.phone = showroom_data["phone"]
+            showroom.whatsapp_number = showroom_data["whatsapp_number"]
+            showroom.opening_hours = showroom_data["opening_hours"]
+            showroom.sort_order = showroom_data["sort_order"]
 
 
 if __name__ == "__main__":

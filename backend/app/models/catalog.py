@@ -26,7 +26,6 @@ class Category(Base):
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(160), nullable=False)
     image_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
-    blurb: Mapped[str | None] = mapped_column(Text, nullable=True)
     slug: Mapped[str] = mapped_column(String(180), unique=True, nullable=False)
     parent_id: Mapped[UUID | None] = mapped_column(
         Uuid(as_uuid=True), ForeignKey("categories.id"), nullable=True
@@ -39,6 +38,8 @@ class Category(Base):
         ForeignKey("products.id", use_alter=True),
         nullable=True,
     )
+
+    blurb: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class Product(Base):

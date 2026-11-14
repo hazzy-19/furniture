@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import HeroBanner, PromoMessage, Showroom
+from app.schemas.content import HeroResponse, ShowroomResponse
 
 
 router = APIRouter(prefix="/api", tags=["content"])
@@ -24,8 +25,8 @@ def get_promos(db: Session = Depends(get_db)) -> list[str]:
     return [message.text for message in messages]
 
 
-@router.get("/hero")
-def get_hero(db: Session = Depends(get_db)) -> dict[str, Any]:
+@router.get("/hero", response_model=HeroResponse)
+def get_hero(db: Session = Depends(get_db)) -> Any:
     hero = db.scalar(
         select(HeroBanner)
         .where(HeroBanner.is_active.is_(True))
@@ -37,22 +38,22 @@ def get_hero(db: Session = Depends(get_db)) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="No active hero banner found")
 
     return {
-        "eyebrow": None,
+        "eyebrow": hero.eyebrow,
         "headlineDesktop": hero.headline_desktop,
         "headlineMobile": hero.headline_mobile,
         "subtext": hero.subtext,
         "ctaLabelDesktop": hero.cta_label,
-        "ctaLabelMobile": hero.cta_label,
+        "ctaLabelMobile": hero.cta_label_mobile,
         "ctaPath": hero.cta_url,
-        "badge": None,
+        "badge": hero.badge,
         "imageDesktop": hero.image_url_desktop,
         "imageMobile": hero.image_url_mobile,
         "imageAlt": hero.headline_mobile,
     }
 
 
-@router.get("/showrooms")
-def get_showrooms(db: Session = Depends(get_db)) -> list[dict[str, Any]]:
+@router.get("/showrooms", response_model=list[ShowroomResponse])
+def get_showrooms(db: Session = Depends(get_db)) -> Any:
     showrooms = db.scalars(
         select(Showroom).order_by(Showroom.sort_order, Showroom.name)
     ).all()
@@ -62,10 +63,11 @@ def get_showrooms(db: Session = Depends(get_db)) -> list[dict[str, Any]]:
             "id": str(showroom.id),
             "name": showroom.name,
             "city": showroom.city,
+            "area": showroom.area,
             "address": showroom.address,
             "phone": showroom.phone,
             "whatsappNumber": showroom.whatsapp_number,
-            "openingHours": showroom.opening_hours,
+            "hours": showroom.opening_hours,
             "mapUrl": showroom.map_url,
             "sortOrder": showroom.sort_order,
         }

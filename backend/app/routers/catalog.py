@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, aliased
 
 from app.database import get_db
 from app.models import Category, Product, ProductImage, ProductStatus
+from app.schemas.content import HeroResponse, ShowroomResponse
 
 
 router = APIRouter(prefix="/api", tags=["catalog"])
@@ -46,54 +47,58 @@ def get_menu(db: Session = Depends(get_db)) -> dict[str, Any]:
         featured_products = {product.id: product for product in products}
 
     menu_rooms = []
+
     for room in rooms:
-        room_path = f"/shop/{room.slug}"
+        room_path = f'/shop/{room.slug}'
         room_categories = children_by_room.get(room.id, [])
         featured_product = featured_products.get(room.featured_product_id)
 
         if featured_product:
             product_category = categories_by_id.get(featured_product.category_id)
+
             if product_category and product_category.parent_id == room.id:
-                featured_path = f"{room_path}/{product_category.slug}"
+                featured_path = f'{room_path}/{product_category.slug}'
             else:
                 featured_path = room_path
 
             featured = {
-                "label": featured_product.name,
-                "path": featured_path,
-                "caption": featured_product.description[:160],
+                'label': featured_product.name,
+                'path': featured_path,
+                'caption': featured_product.description[:160],
             }
         else:
             featured = {
-                "label": room.name,
-                "path": room_path,
-                "caption": room.blurb or "",
+                'label': room.name,
+                'path': room_path,
+                'caption': '',
             }
 
         menu_rooms.append(
             {
-                "id": room.slug,
-                "label": room.name,
-                "path": room_path,
-                "image": room.image_url,
-                "categories": [
+                'id': room.slug,
+                'label': room.name,
+                'path': room_path,
+                'image': room.image_url,
+                'blurb': room.blurb,
+                'categories': [
                     {
-                        "id": f"{room.slug}-{category.slug}",
-                        "label": category.name,
-                        "path": f"{room_path}/{category.slug}",
-                        "image": category.image_url,
+                        'id': f'{room.slug}-{category.slug}',
+                        'label': category.name,
+                        'path': f'{room_path}/{category.slug}',
+                        'image': category.image_url,
+                        'blurb': category.blurb,
                     }
                     for category in room_categories
                 ],
-                "featured": featured,
+                'featured': featured,
             }
         )
 
     return {
-        "rooms": menu_rooms,
-        "plainLinks": [
-            {"label": "New and hot", "path": "/new"},
-            {"label": "Sale", "path": "/sale", "isHighlighted": True},
+        'rooms': menu_rooms,
+        'plainLinks': [
+            {'label': 'New and hot', 'path': '/new'},
+            {'label': 'Sale', 'path': '/sale', 'isHighlighted': True},
         ],
     }
 
@@ -121,31 +126,31 @@ def _product_payload(
     cutoff = datetime.now(timezone.utc) - timedelta(days=30)
 
     if product.is_hot:
-        badge = "hot"
+        badge = 'hot'
     elif product.published_at and product.published_at >= cutoff:
-        badge = "new"
+        badge = 'new'
     else:
         badge = None
 
     return {
-        "id": str(product.id),
-        "slug": product.slug,
-        "name": product.name,
-        "priceKes": product.price_kes,
-        "compareAtPriceKes": product.compare_at_price_kes,
-        "badge": badge,
-        "image": image_urls[0] if image_urls else None,
-        "images": image_urls,
-        "stock": product.stock_quantity,
-        "lowStockThreshold": product.low_stock_threshold,
-        "room": room.slug,
-        "category": category.slug if category.parent_id is not None else None,
-        "description": product.description,
-        "material": product.material,
-        "color": product.color,
-        "widthCm": product.width_cm,
-        "depthCm": product.depth_cm,
-        "heightCm": product.height_cm,
+        'id': str(product.id),
+        'slug': product.slug,
+        'name': product.name,
+        'priceKes': product.price_kes,
+        'compareAtPriceKes': product.compare_at_price_kes,
+        'badge': badge,
+        'image': image_urls[0] if image_urls else None,
+        'images': image_urls,
+        'stock': product.stock_quantity,
+        'lowStockThreshold': product.low_stock_threshold,
+        'room': room.slug,
+        'category': category.slug if category.parent_id is not None else None,
+        'description': product.description,
+        'material': product.material,
+        'color': product.color,
+        'widthCm': product.width_cm,
+        'depthCm': product.depth_cm,
+        'heightCm': product.height_cm,
     }
 
 
@@ -158,7 +163,7 @@ def _load_products(
     hot_only: bool = False,
     sale_only: bool = False,
     in_stock: bool = False,
-    sort: Literal["price-asc", "price-desc"] | None = None,
+    sort: Literal['price-asc', 'price-desc'] | None = None,
     slug: str | None = None,
 ) -> list[dict[str, Any]]:
     statement, room_category = _published_product_query()
@@ -192,9 +197,9 @@ def _load_products(
     if in_stock:
         statement = statement.where(Product.stock_quantity > 0)
 
-    if sort == "price-asc":
+    if sort == 'price-asc':
         statement = statement.order_by(Product.price_kes.asc())
-    elif sort == "price-desc":
+    elif sort == 'price-desc':
         statement = statement.order_by(Product.price_kes.desc())
     else:
         statement = statement.order_by(
@@ -218,6 +223,7 @@ def _load_products(
     ).all()
 
     images_by_product: dict[Any, list[str]] = defaultdict(list)
+
     for image in image_rows:
         images_by_product[image.product_id].append(image.url)
 
@@ -232,7 +238,7 @@ def _load_products(
     ]
 
 
-@router.get("/products")
+@router.get('/products')
 def list_products(
     room: str | None = None,
     category: str | None = None,
@@ -240,7 +246,7 @@ def list_products(
     hot_only: bool = False,
     sale_only: bool = False,
     in_stock: bool = False,
-    sort: Literal["price-asc", "price-desc"] | None = None,
+    sort: Literal['price-asc', 'price-desc'] | None = None,
     db: Session = Depends(get_db),
 ) -> list[dict[str, Any]]:
     return _load_products(
@@ -255,11 +261,11 @@ def list_products(
     )
 
 
-@router.get("/products/{slug}")
+@router.get('/products/{slug}')
 def get_product(slug: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     products = _load_products(db, slug=slug)
 
     if not products:
-        raise HTTPException(status_code=404, detail="Product not found")
+        raise HTTPException(status_code=404, detail='Product not found')
 
     return products[0]

@@ -7,14 +7,20 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.routers import catalog, content, subscribers
+from app.routers import admin_content, admin_products, admin_auth, catalog, content, subscribers, admin_uploads
 
+is_development = settings.environment.lower() == "development"
 
-app = FastAPI(title=settings.app_name)
+app = FastAPI(
+    title=settings.app_name,
+    docs_url="/docs" if is_development else None,
+    redoc_url="/redoc" if is_development else None,
+    openapi_url="/openapi.json" if is_development else None,
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,6 +29,10 @@ app.add_middleware(
 app.include_router(catalog.router)
 app.include_router(content.router)
 app.include_router(subscribers.router)
+app.include_router(admin_auth.router)
+app.include_router(admin_products.router)
+app.include_router(admin_uploads.router)
+app.include_router(admin_content.router)
 
 
 @app.get("/health")
