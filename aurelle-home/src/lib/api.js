@@ -1,5 +1,7 @@
 const API_BASE_URL = (
-  import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  'http://localhost:8000'
 ).replace(/\/$/, '')
 
 const delay = (ms = 400) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -30,14 +32,25 @@ export async function getProduct(slug) {
   return response.json()
 }
 
-export async function getHero() {
-  const response = await fetch(`${API_BASE_URL}/api/hero`)
+let heroRequest
 
-  if (!response.ok) {
-    throw new Error(`Could not load homepage hero (${response.status}).`)
+export function getHero() {
+  if (!heroRequest) {
+    heroRequest = fetch(`${API_BASE_URL}/api/hero`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Could not load homepage hero (${response.status}).`)
+        }
+
+        return response.json()
+      })
+      .catch((error) => {
+        heroRequest = undefined
+        throw error
+      })
   }
 
-  return response.json()
+  return heroRequest
 }
 
 export async function getPromos() {

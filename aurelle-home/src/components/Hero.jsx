@@ -1,9 +1,30 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Sofa } from 'lucide-react'
 import Icon from './Icon.jsx'
 import { heroData } from '../data/hero.js'
+import { getHero } from '../lib/api.js'
+import { cloudinaryUrl } from '../lib/cloudinaryUrl.js'
 
 export default function Hero() {
+  const [content, setContent] = useState(heroData)
+
+  useEffect(() => {
+    let ignoreResult = false
+
+    getHero()
+      .then((data) => {
+        if (!ignoreResult) setContent(data)
+      })
+      .catch(() => {
+        // Keep the local fallback content if the API is unavailable.
+      })
+
+    return () => {
+      ignoreResult = true
+    }
+  }, [])
+
   const {
     eyebrow,
     headlineDesktop,
@@ -16,7 +37,7 @@ export default function Hero() {
     imageDesktop,
     imageMobile,
     imageAlt,
-  } = heroData
+  } = content
 
   const hasImages = Boolean(imageDesktop && imageMobile)
 
@@ -26,9 +47,12 @@ export default function Hero() {
       <div className="absolute inset-0 -z-10">
         {hasImages ? (
           <picture>
-            <source media="(min-width: 768px)" srcSet={imageDesktop} />
+            <source
+              media="(min-width: 768px)"
+              srcSet={cloudinaryUrl(imageDesktop, 1600)}
+            />
             <img
-              src={imageMobile}
+              src={cloudinaryUrl(imageMobile, 800)}
               alt={imageAlt}
               decoding="async"
               fetchPriority="high"

@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     app_name: str = "Aurelle Home API"
     database_url: str
 
-    # claudinary configuration
+    # Cloudinary configuration
     cloudinary_cloud_name: str | None = None
     cloudinary_api_key: str | None = None
     cloudinary_api_secret: str | None = None

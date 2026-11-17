@@ -28,13 +28,27 @@ export default function AdminLayout() {
   return (
     <div className="flex min-h-[100dvh] flex-col bg-page text-ink font-body">
       <header className="border-b-2 border-ink bg-page">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-3">
           <Link
             to="/admin/products"
             className="font-heading text-xl text-brand-900 hover:text-brand-700 transition-colors"
           >
             Aurelle Home admin
           </Link>
+          <nav aria-label="Admin navigation" className="flex items-center gap-4 text-sm">
+            <Link
+              to="/admin/products"
+              className="font-medium text-brand-700 hover:underline"
+            >
+              Products
+            </Link>
+            <Link
+              to="/admin/content"
+              className="font-medium text-brand-700 hover:underline"
+            >
+              Content
+            </Link>
+          </nav>
           <div className="flex items-center gap-4">
             <span className="text-sm text-ink/70">{admin.email}</span>
             <button

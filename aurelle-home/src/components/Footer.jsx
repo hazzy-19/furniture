@@ -1,12 +1,44 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { config } from '../config.js'
+import { getHero } from '../lib/api.js'
+import { cloudinaryUrl } from '../lib/cloudinaryUrl.js'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
+  const [backgroundImage, setBackgroundImage] = useState('')
+
+  useEffect(() => {
+    let ignoreResult = false
+
+    getHero()
+      .then((content) => {
+        if (!ignoreResult) setBackgroundImage(content.imageDesktop || '')
+      })
+      .catch(() => {
+        // Keep the solid brand background if the hero image is unavailable.
+      })
+
+    return () => {
+      ignoreResult = true
+    }
+  }, [])
 
   return (
-    <footer className="bg-brand-900 text-brand-50 mt-auto border-t border-brand-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+    <footer className="relative isolate mt-auto overflow-hidden border-t border-brand-700 bg-brand-900 text-brand-50">
+      {backgroundImage && (
+        <div className="absolute inset-0 z-0" aria-hidden="true">
+          <img
+            src={cloudinaryUrl(backgroundImage, 1600)}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-brand-900/85" />
+        </div>
+      )}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 md:py-16">
         {/* Footer Navigation Columns: stacks on mobile, 3 columns on desktop */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 pb-12 border-b border-brand-700/70">
           {/* Column 1: Shop */}
@@ -102,7 +134,7 @@ export default function Footer() {
           <p className="font-heading text-base tracking-wider text-brand-50">
             Aurelle <span className="text-gold-500">Home</span>
           </p>
-          <p>© {currentYear} Aurelle Home. All rights reserved.</p>
+          <p>© {currentYear} Unclaimed Technologies. All rights reserved.</p>
         </div>
       </div>
     </footer>

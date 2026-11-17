@@ -9,6 +9,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.catalog import Category, Product
 from app.models.content import HeroBanner
+from app.routers.admin_uploads import (
+    delete_cloudinary_asset,
+    is_cloudinary_asset_referenced,
+)
 from app.schemas.admin_content import (
     AdminCategoryCreate,
     AdminCategoryResponse,
@@ -55,6 +59,7 @@ def _category_payload(db: Session, category: Category) -> dict:
         "slug": category.slug,
         "blurb": category.blurb,
         "imageUrl": category.image_url,
+        "cloudinaryPublicId": category.cloudinary_public_id,
         "parentId": str(category.parent_id) if category.parent_id else None,
         "parentSlug": parent.slug if parent else None,
         "parentName": parent.name if parent else None,
@@ -94,6 +99,7 @@ def create_category(
         slug=payload.slug,
         blurb=payload.blurb,
         image_url=payload.image_url,
+        cloudinary_public_id=payload.cloudinary_public_id,
         parent_id=parent.id if parent else None,
         sort_order=payload.sort_order,
     )
@@ -167,12 +173,23 @@ def update_category(
             )
         category.parent_id = parent.id if parent else None
 
-    for field in ("name", "blurb", "image_url", "sort_order"):
+    old_public_id = category.cloudinary_public_id
+
+    for field in ("name", "blurb", "image_url", "cloudinary_public_id", "sort_order"):
         if field in values:
             setattr(category, field, values[field])
 
     db.commit()
     db.refresh(category)
+
+    # Clean up old Cloudinary asset if replaced
+    if (
+        old_public_id
+        and old_public_id != category.cloudinary_public_id
+        and not is_cloudinary_asset_referenced(db, old_public_id)
+    ):
+        delete_cloudinary_asset(old_public_id)
+
     return _category_payload(db, category)
 
 
@@ -206,8 +223,13 @@ def delete_category(
             detail="Move its products to another category before deleting it",
         )
 
+    old_public_id = category.cloudinary_public_id
     db.delete(category)
     db.commit()
+
+    if old_public_id and not is_cloudinary_asset_referenced(db, old_public_id):
+        delete_cloudinary_asset(old_public_id)
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -224,6 +246,8 @@ def _hero_payload(hero: HeroBanner) -> dict:
         "badge": hero.badge,
         "imageDesktop": hero.image_url_desktop,
         "imageMobile": hero.image_url_mobile,
+        "cloudinaryPublicIdDesktop": hero.cloudinary_public_id_desktop,
+        "cloudinaryPublicIdMobile": hero.cloudinary_public_id_mobile,
         "isActive": hero.is_active,
     }
 
@@ -262,6 +286,9 @@ def save_admin_hero(
     if hero is None:
         hero = db.scalar(select(HeroBanner).order_by(HeroBanner.id).limit(1))
 
+    old_desktop_pid = hero.cloudinary_public_id_desktop if hero else None
+    old_mobile_pid = hero.cloudinary_public_id_mobile if hero else None
+
     if hero is None:
         hero = HeroBanner(
             eyebrow=payload.eyebrow,
@@ -274,6 +301,8 @@ def save_admin_hero(
             badge=payload.badge,
             image_url_desktop=payload.image_desktop,
             image_url_mobile=payload.image_mobile,
+            cloudinary_public_id_desktop=payload.cloudinary_public_id_desktop,
+            cloudinary_public_id_mobile=payload.cloudinary_public_id_mobile,
             is_active=payload.is_active,
         )
         db.add(hero)
@@ -288,6 +317,8 @@ def save_admin_hero(
         hero.badge = payload.badge
         hero.image_url_desktop = payload.image_desktop
         hero.image_url_mobile = payload.image_mobile
+        hero.cloudinary_public_id_desktop = payload.cloudinary_public_id_desktop
+        hero.cloudinary_public_id_mobile = payload.cloudinary_public_id_mobile
         hero.is_active = payload.is_active
 
     if payload.is_active:
@@ -299,4 +330,20 @@ def save_admin_hero(
 
     db.commit()
     db.refresh(hero)
+
+    # Clean up replaced hero assets in Cloudinary
+    if (
+        old_desktop_pid
+        and old_desktop_pid != hero.cloudinary_public_id_desktop
+        and not is_cloudinary_asset_referenced(db, old_desktop_pid)
+    ):
+        delete_cloudinary_asset(old_desktop_pid)
+
+    if (
+        old_mobile_pid
+        and old_mobile_pid != hero.cloudinary_public_id_mobile
+        and not is_cloudinary_asset_referenced(db, old_mobile_pid)
+    ):
+        delete_cloudinary_asset(old_mobile_pid)
+
     return _hero_payload(hero)

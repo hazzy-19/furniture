@@ -59,6 +59,8 @@ class HeroBanner(Base):
     badge: Mapped[str | None] = mapped_column(String(100), nullable=True)
     image_url_desktop: Mapped[str] = mapped_column(String(2048), nullable=False)
     image_url_mobile: Mapped[str] = mapped_column(String(2048), nullable=False)
+    cloudinary_public_id_desktop: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    cloudinary_public_id_mobile: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default=sql_text("true")
     )

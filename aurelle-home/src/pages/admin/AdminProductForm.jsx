@@ -9,8 +9,11 @@ import {
   updateImage,
   deleteImage,
   uploadImageFile,
+  buildProductPayload,
+  getMenu,
 } from '../../lib/adminApi.js'
 import usePageMeta from '../../lib/usePageMeta.js'
+import { cloudinaryUrl } from '../../lib/cloudinaryUrl.js'
 
 export default function AdminProductForm() {
   const { id } = useParams()
@@ -54,27 +57,21 @@ export default function AdminProductForm() {
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const [deleteError, setDeleteError] = useState('')
-
-  // URL image form state for existing products
-  const [newImageUrl, setNewImageUrl] = useState('')
-  const [newImageAlt, setNewImageAlt] = useState('')
-  const [addingImage, setAddingImage] = useState(false)
   const [imageError, setImageError] = useState('')
+  const [replacingImageId, setReplacingImageId] = useState(null)
 
-  // Load categories from the public menu endpoint
+  // Load categories from the menu endpoint via hardened client
   useEffect(() => {
-    const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-
-    fetch(`${API}/api/menu`)
-      .then((res) => (res.ok ? res.json() : null))
+    getMenu()
       .then((data) => {
         if (data && data.rooms) {
           setMenuRooms(data.rooms)
         }
       })
       .catch(() => {
-        // Keep the form usable if the public menu is unavailable.
+        // Keep the form usable if the menu endpoint is unavailable.
       })
   }, [])
 
@@ -141,11 +138,17 @@ export default function AdminProductForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-
     setForm((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }))
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev }
+        delete next[name]
+        return next
+      })
+    }
   }
 
   const handleImageFileChange = (e) => {
@@ -173,29 +176,10 @@ export default function AdminProductForm() {
     e.preventDefault()
     setSaving(true)
     setSaveError('')
+    setFieldErrors({})
     setSaveSuccess(false)
 
-    const payload = {
-      name: form.name.trim(),
-      slug: form.slug.trim() || null,
-      description: form.description.trim(),
-      priceKes: Number(form.priceKes),
-      compareAtPriceKes:
-        form.compareAtPriceKes !== ''
-          ? Number(form.compareAtPriceKes)
-          : null,
-      categorySlug: form.categorySlug || null,
-      material: form.material.trim() || null,
-      color: form.color.trim() || null,
-      widthCm: form.widthCm !== '' ? Number(form.widthCm) : null,
-      depthCm: form.depthCm !== '' ? Number(form.depthCm) : null,
-      heightCm: form.heightCm !== '' ? Number(form.heightCm) : null,
-      isHot: Boolean(form.isHot),
-      status: form.status,
-      stock: form.stock !== '' ? Number(form.stock) : 0,
-      lowStockThreshold:
-        form.lowStockThreshold !== '' ? Number(form.lowStockThreshold) : 3,
-    }
+    const payload = buildProductPayload(form)
 
     try {
       let productId = routeProductId || createdProductId
@@ -210,17 +194,16 @@ export default function AdminProductForm() {
 
       // Upload selected files and attach them to this product.
       for (const file of selectedImageFiles) {
-        const uploaded = await uploadImageFile(file)
+        const uploaded = await uploadImageFile(file, 'products')
         const savedImage = await addImage(productId, {
           url: uploaded.url,
+          cloudinaryPublicId: uploaded.publicId,
           alt: form.name.trim().slice(0, 255),
         })
 
         setImages((current) => [...current, savedImage])
-        setSelectedImageFiles((current) =>
-          current.filter((selectedFile) => selectedFile !== file),
-        )
       }
+      setSelectedImageFiles([])
 
       if (routeProductId) {
         await loadProductData()
@@ -230,7 +213,12 @@ export default function AdminProductForm() {
         navigate(`/admin/products/${productId}`)
       }
     } catch (err) {
-      setSaveError(err.message || 'Failed to save product and images')
+      if (err.fieldErrors) {
+        setFieldErrors(err.fieldErrors)
+        setSaveError('Please correct the highlighted errors.')
+      } else {
+        setSaveError(err.message || 'Failed to save product and images')
+      }
     } finally {
       setSaving(false)
     }
@@ -269,26 +257,44 @@ export default function AdminProductForm() {
     }
   }
 
-  const handleAddImage = async (e) => {
-    e.preventDefault()
-    if (!newImageUrl.trim()) return
+  const handleReplaceImage = async (imageId, file) => {
+    if (!file) return
+    const allowedTypes = new Set([
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/avif',
+    ])
+    if (!allowedTypes.has(file.type)) {
+      setImageError('Choose a JPEG, PNG, WebP, or AVIF image.')
+      return
+    }
 
-    setAddingImage(true)
+    setReplacingImageId(imageId)
     setImageError('')
 
     try {
-      await addImage(id, {
-        url: newImageUrl.trim(),
-        alt: newImageAlt.trim() || null,
+      // 1. Upload replacement first
+      const uploaded = await uploadImageFile(file, 'products')
+      // 2. Update DB reference; backend commits DB then destroys old asset
+      await updateImage(id, imageId, {
+        url: uploaded.url,
+        cloudinaryPublicId: uploaded.publicId,
       })
-
-      setNewImageUrl('')
-      setNewImageAlt('')
       await loadProductData()
     } catch (err) {
-      setImageError(err.message || 'Failed to add image')
+      setImageError(err.message || 'Failed to replace image')
     } finally {
-      setAddingImage(false)
+      setReplacingImageId(null)
+    }
+  }
+
+  const handleUpdateAlt = async (imageId, altText) => {
+    try {
+      await updateImage(id, imageId, { alt: altText })
+      await loadProductData()
+    } catch (err) {
+      setImageError(err.message || 'Failed to update alt text')
     }
   }
 
@@ -338,8 +344,11 @@ export default function AdminProductForm() {
           required
           value={form.name}
           onChange={handleChange}
-          className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+          className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
         />
+        {fieldErrors.name && (
+          <p className="mt-1 text-xs text-red-700">{fieldErrors.name}</p>
+        )}
 
         {/* Slug */}
         <label htmlFor="product-slug" className="mt-4 block text-sm text-ink">
@@ -354,8 +363,11 @@ export default function AdminProductForm() {
           type="text"
           value={form.slug}
           onChange={handleChange}
-          className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+          className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
         />
+        {fieldErrors.slug && (
+          <p className="mt-1 text-xs text-red-700">{fieldErrors.slug}</p>
+        )}
 
         {/* Description */}
         <label
@@ -371,8 +383,11 @@ export default function AdminProductForm() {
           required
           value={form.description}
           onChange={handleChange}
-          className="mt-1 w-full rounded-[4px] border border-brand-200 bg-white p-4 text-base"
+          className="mt-1 w-full rounded-[4px] border border-brand-200 bg-white p-4 text-base text-ink"
         />
+        {fieldErrors.description && (
+          <p className="mt-1 text-xs text-red-700">{fieldErrors.description}</p>
+        )}
 
         {/* Price and compare-at price */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -391,8 +406,11 @@ export default function AdminProductForm() {
               required
               value={form.priceKes}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
+            {fieldErrors.priceKes && (
+              <p className="mt-1 text-xs text-red-700">{fieldErrors.priceKes}</p>
+            )}
           </div>
           <div>
             <label
@@ -408,8 +426,13 @@ export default function AdminProductForm() {
               min="0"
               value={form.compareAtPriceKes}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
+            {fieldErrors.compareAtPriceKes && (
+              <p className="mt-1 text-xs text-red-700">
+                {fieldErrors.compareAtPriceKes}
+              </p>
+            )}
           </div>
         </div>
 
@@ -428,7 +451,7 @@ export default function AdminProductForm() {
           onChange={(e) =>
             setForm((prev) => ({ ...prev, categorySlug: e.target.value }))
           }
-          className="mt-1 h-12 w-full cursor-pointer rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+          className="mt-1 h-12 w-full cursor-pointer rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
         >
           <option value="">Select a category</option>
           {menuRooms.map((room) => (
@@ -445,6 +468,9 @@ export default function AdminProductForm() {
             </optgroup>
           ))}
         </select>
+        {fieldErrors.categorySlug && (
+          <p className="mt-1 text-xs text-red-700">{fieldErrors.categorySlug}</p>
+        )}
 
         {/* Material and color */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -461,7 +487,7 @@ export default function AdminProductForm() {
               type="text"
               value={form.material}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
           </div>
           <div>
@@ -477,7 +503,7 @@ export default function AdminProductForm() {
               type="text"
               value={form.color}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
           </div>
         </div>
@@ -498,7 +524,7 @@ export default function AdminProductForm() {
               min="0"
               value={form.widthCm}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
           </div>
           <div>
@@ -515,7 +541,7 @@ export default function AdminProductForm() {
               min="0"
               value={form.depthCm}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
           </div>
           <div>
@@ -532,7 +558,7 @@ export default function AdminProductForm() {
               min="0"
               value={form.heightCm}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
           </div>
         </div>
@@ -563,7 +589,7 @@ export default function AdminProductForm() {
           name="status"
           value={form.status}
           onChange={handleChange}
-          className="mt-1 h-12 w-full cursor-pointer rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+          className="mt-1 h-12 w-full cursor-pointer rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
         >
           <option value="draft">Draft</option>
           <option value="published">Published</option>
@@ -586,7 +612,7 @@ export default function AdminProductForm() {
               min="0"
               value={form.stock}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
           </div>
           <div>
@@ -603,55 +629,65 @@ export default function AdminProductForm() {
               min="0"
               value={form.lowStockThreshold}
               onChange={handleChange}
-              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base"
+              className="mt-1 h-12 w-full rounded-[4px] border border-brand-200 bg-white px-4 text-base text-ink"
             />
           </div>
         </div>
 
-        {/* Select images now; they upload when Save is pressed */}
-        <div className="mt-6">
-          <label
-            htmlFor="product-images"
-            className="block text-sm text-ink"
-          >
-            Product images
-          </label>
+        {/* Select local images from device to attach on save */}
+        <section className="mt-8 rounded-lg border border-brand-200 bg-brand-50 p-4">
+          <h2 className="font-heading text-xl text-brand-900">Add product images</h2>
+          <p className="mt-1 text-sm text-ink/70">
+            Choose image files from your device. They upload when you save the product.
+          </p>
           <input
             id="product-images"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/avif"
             multiple
             onChange={handleImageFileChange}
-            className="mt-2 block w-full text-sm text-ink"
+            className="sr-only"
           />
-          <p className="mt-1 text-xs text-ink/60">
-            Choose one or more images. They upload when you save the product.
-          </p>
+          <label
+            htmlFor="product-images"
+            className="mt-3 inline-flex h-10 cursor-pointer items-center rounded-[4px] border-2 border-ink px-4 text-sm font-medium text-ink hover:bg-ink hover:text-white"
+          >
+            Choose images from device
+          </label>
 
           {selectedImageFiles.length > 0 && (
-            <ul className="mt-3 space-y-2">
-              {selectedImageFiles.map((file, index) => (
-                <li
-                  key={`${file.name}-${file.lastModified}-${index}`}
-                  className="flex items-center justify-between gap-3 text-sm text-ink"
-                >
-                  <span className="truncate">{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSelectedImageFiles((current) =>
-                        current.filter((_, fileIndex) => fileIndex !== index),
-                      )
-                    }
-                    className="shrink-0 text-red-700 hover:underline"
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {selectedImageFiles.map((file, index) => {
+                const objectUrl = URL.createObjectURL(file)
+                return (
+                  <div
+                    key={`${file.name}-${file.lastModified}-${index}`}
+                    className="relative overflow-hidden rounded-lg border border-brand-200 bg-white p-2"
                   >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <img
+                      src={objectUrl}
+                      alt={file.name}
+                      className="h-24 w-full rounded-[4px] object-cover"
+                      onLoad={() => URL.revokeObjectURL(objectUrl)}
+                    />
+                    <p className="mt-1 truncate text-xs text-ink">{file.name}</p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedImageFiles((current) =>
+                          current.filter((_, fileIndex) => fileIndex !== index),
+                        )
+                      }
+                      className="mt-1 text-xs font-medium text-red-700 hover:underline cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
           )}
-        </div>
+        </section>
 
         {saveError && (
           <p role="alert" className="mt-3 text-sm text-red-700">
@@ -698,10 +734,13 @@ export default function AdminProductForm() {
         )}
       </form>
 
-      {/* Existing product images and URL-based image option */}
+      {/* Existing uploaded product images with in-place replace and delete */}
       {!isNew && (
         <section className="mt-12 border-t border-brand-200 pt-8">
-          <h2 className="font-heading text-2xl text-brand-900">Images</h2>
+          <h2 className="font-heading text-2xl text-brand-900">Saved product images</h2>
+          <p className="mt-1 text-xs text-ink/60">
+            Each image can be replaced from your device, marked primary, or deleted.
+          </p>
 
           {imageError && (
             <p role="alert" className="mt-2 text-sm text-red-700">
@@ -714,25 +753,35 @@ export default function AdminProductForm() {
               {images.map((img) => (
                 <div
                   key={img.id}
-                  className="flex flex-col justify-between gap-3 py-3 sm:flex-row sm:items-center"
+                  className="flex flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <img
-                      src={img.url}
+                      src={cloudinaryUrl(img.url, 200)}
                       alt={img.alt || ''}
-                      className="h-16 w-16 shrink-0 rounded-[4px] bg-brand-200 object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      className="h-20 w-20 shrink-0 rounded-[4px] border border-brand-200 bg-brand-200 object-cover"
                     />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-ink">
+                      <p className="truncate text-xs font-mono text-ink/70">
                         {img.url}
                       </p>
-                      {img.alt && (
-                        <p className="truncate text-xs text-ink/60">{img.alt}</p>
-                      )}
+                      <input
+                        type="text"
+                        defaultValue={img.alt || ''}
+                        placeholder="Alt text"
+                        onBlur={(e) => {
+                          if (e.target.value !== img.alt) {
+                            handleUpdateAlt(img.id, e.target.value)
+                          }
+                        }}
+                        className="mt-1 h-8 w-full max-w-xs rounded-[4px] border border-brand-200 bg-white px-2 text-xs text-ink"
+                      />
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-4">
+                  <div className="flex shrink-0 flex-wrap items-center gap-4">
                     <label className="flex cursor-pointer items-center gap-1.5 text-xs text-ink">
                       <input
                         type="radio"
@@ -743,12 +792,30 @@ export default function AdminProductForm() {
                       />
                       Primary
                     </label>
+
+                    {/* In-place image replacement file picker */}
+                    <input
+                      id={`replace-img-${img.id}`}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/avif"
+                      onChange={(e) =>
+                        handleReplaceImage(img.id, e.target.files?.[0])
+                      }
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor={`replace-img-${img.id}`}
+                      className="cursor-pointer text-xs font-semibold text-brand-700 hover:underline"
+                    >
+                      {replacingImageId === img.id ? 'Uploading...' : 'Replace image'}
+                    </label>
+
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(img.id)}
                       className="cursor-pointer text-xs font-medium text-red-700 hover:underline"
                     >
-                      Remove
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -757,49 +824,6 @@ export default function AdminProductForm() {
           ) : (
             <p className="mt-3 text-sm text-ink/60">No images added yet.</p>
           )}
-
-          {/* Optional URL-based image entry */}
-          <form
-            onSubmit={handleAddImage}
-            className="mt-6 flex flex-col items-end gap-3 sm:flex-row"
-          >
-            <div className="w-full flex-1">
-              <label htmlFor="new-image-url" className="block text-xs text-ink">
-                Image URL
-              </label>
-              <input
-                id="new-image-url"
-                type="url"
-                required
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="https://..."
-                className="mt-1 h-10 w-full rounded-[4px] border border-brand-200 bg-white px-3 text-sm"
-              />
-            </div>
-
-            <div className="w-full sm:w-48">
-              <label htmlFor="new-image-alt" className="block text-xs text-ink">
-                Alt text
-              </label>
-              <input
-                id="new-image-alt"
-                type="text"
-                value={newImageAlt}
-                onChange={(e) => setNewImageAlt(e.target.value)}
-                placeholder="Image description"
-                className="mt-1 h-10 w-full rounded-[4px] border border-brand-200 bg-white px-3 text-sm"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={addingImage}
-              className="h-10 shrink-0 cursor-pointer rounded-[4px] bg-brand-900 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
-            >
-              {addingImage ? 'Adding...' : 'Add image'}
-            </button>
-          </form>
         </section>
       )}
     </div>

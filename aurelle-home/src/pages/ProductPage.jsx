@@ -17,6 +17,7 @@ import { getRoom, getCategory } from '../lib/catalog.js'
 import { getProduct, getProducts } from '../lib/api.js'
 import { buildOrderUrl, buildQuestionUrl } from '../lib/whatsapp.js'
 import usePageMeta from '../lib/usePageMeta.js'
+import { cloudinaryUrl } from '../lib/cloudinaryUrl.js'
 
 function ProductDetail({ product, relatedProducts }) {
   const { isFavorite, toggleFavorite } = useFavorites()
@@ -105,8 +106,9 @@ function ProductDetail({ product, relatedProducts }) {
           <div className="relative h-[320px] w-full overflow-hidden rounded-lg bg-brand-200 md:h-[480px]">
             {currentImage ? (
               <img
-                src={currentImage}
+                src={cloudinaryUrl(currentImage, 1200)}
                 alt={product.name}
+                loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover"
               />
@@ -158,7 +160,7 @@ function ProductDetail({ product, relatedProducts }) {
                     }`}
                 >
                   <img
-                    src={image}
+                    src={cloudinaryUrl(image, 200)}
                     alt=""
                     loading="lazy"
                     decoding="async"

@@ -3,6 +3,7 @@ import { Heart, Image as ImageIcon } from 'lucide-react'
 import Icon from './Icon.jsx'
 import { formatKes } from '../lib/format.js'
 import { useFavorites } from '../context/FavoritesContext.jsx'
+import { cloudinaryUrl } from '../lib/cloudinaryUrl.js'
 
 export default function ProductCard({ product }) {
   const { isFavorite, toggleFavorite } = useFavorites()
@@ -28,7 +29,7 @@ export default function ProductCard({ product }) {
       <div className="relative h-[220px] w-full overflow-hidden rounded-lg bg-brand-200 md:h-[260px]">
         {image ? (
           <img
-            src={image}
+            src={cloudinaryUrl(image, 400)}
             alt={name}
             loading="lazy"
             decoding="async"

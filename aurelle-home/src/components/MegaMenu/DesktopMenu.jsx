@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { ChevronDown, Image as ImageIcon } from 'lucide-react'
 import Icon from '../Icon.jsx'
 import { useMenu } from '../../context/MenuContext.jsx'
+import { cloudinaryUrl } from '../../lib/cloudinaryUrl.js'
 
 export default function DesktopMenu() {
   // activeRoom holds { id, left } when a room menu is open, or null
@@ -84,12 +85,12 @@ export default function DesktopMenu() {
     currentRoom.categories.forEach((cat) => {
       if (cat.image) {
         const img = new window.Image()
-        img.src = cat.image
+        img.src = cloudinaryUrl(cat.image, 400)
       }
     })
     if (currentRoom.image) {
       const img = new window.Image()
-      img.src = currentRoom.image
+      img.src = cloudinaryUrl(currentRoom.image, 400)
     }
   }, [currentRoom])
 
@@ -345,8 +346,10 @@ export default function DesktopMenu() {
                 (activeItem.image ? (
                   <img
                     key={activeItem.id}
-                    src={activeItem.image}
+                    src={cloudinaryUrl(activeItem.image, 400)}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full animate-menu-fade object-cover"
                   />
                 ) : (

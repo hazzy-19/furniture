@@ -10,6 +10,10 @@ from app.database import get_db
 from app.models.catalog import Category, Product, ProductImage
 from app.models.enums import ProductStatus
 from app.models.orders import OrderItem
+from app.routers.admin_uploads import (
+    delete_cloudinary_asset,
+    is_cloudinary_asset_referenced,
+)
 from app.schemas.admin_products import (
     AdminProductCreate,
     AdminProductImageCreate,
@@ -75,6 +79,7 @@ def _image_payload(image: ProductImage) -> dict:
         "alt": image.alt,
         "sortOrder": image.sort_order,
         "isPrimary": image.is_primary,
+        "cloudinaryPublicId": image.cloudinary_public_id,
     }
 
 
@@ -268,12 +273,26 @@ def delete_product(
     for category in featured_categories:
         category.featured_product_id = None
 
+    images = db.scalars(
+        select(ProductImage).where(ProductImage.product_id == product.id)
+    ).all()
+    old_public_ids = [
+        img.cloudinary_public_id for img in images if img.cloudinary_public_id
+    ]
+
     if has_order:
         product.status = ProductStatus.ARCHIVED
     else:
         db.delete(product)
 
     db.commit()
+
+    # Clean up Cloudinary assets after database deletion
+    if not has_order:
+        for public_id in old_public_ids:
+            if not is_cloudinary_asset_referenced(db, public_id):
+                delete_cloudinary_asset(public_id)
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -299,6 +318,7 @@ def add_product_image(
         alt=payload.alt or product.name,
         sort_order=next_sort_order,
         is_primary=not images,
+        cloudinary_public_id=payload.cloudinary_public_id,
     )
 
     db.add(image)
@@ -322,6 +342,13 @@ def update_product_image(
         raise HTTPException(status_code=404, detail="Image not found")
 
     values = payload.model_dump(exclude_unset=True)
+    old_public_id = image.cloudinary_public_id
+
+    if "url" in values and values["url"]:
+        image.url = values["url"]
+
+    if "cloudinary_public_id" in values:
+        image.cloudinary_public_id = values["cloudinary_public_id"]
 
     if "alt" in values:
         image.alt = values["alt"] or product.name
@@ -337,6 +364,16 @@ def update_product_image(
 
     db.commit()
     db.refresh(image)
+
+    # If the image was replaced with a new asset, delete the old asset from Cloudinary
+    if (
+        "url" in values
+        and old_public_id
+        and old_public_id != image.cloudinary_public_id
+        and not is_cloudinary_asset_referenced(db, old_public_id)
+    ):
+        delete_cloudinary_asset(old_public_id)
+
     return _image_payload(image)
 
 
@@ -356,7 +393,9 @@ def delete_product_image(
     if image is None or image.product_id != product.id:
         raise HTTPException(status_code=404, detail="Image not found")
 
+    old_public_id = image.cloudinary_public_id
     was_primary = image.is_primary
+
     db.delete(image)
     db.flush()
 
@@ -370,4 +409,9 @@ def delete_product_image(
             remaining[0].is_primary = True
 
     db.commit()
+
+    # Clean up Cloudinary asset after successful database deletion
+    if old_public_id and not is_cloudinary_asset_referenced(db, old_public_id):
+        delete_cloudinary_asset(old_public_id)
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)

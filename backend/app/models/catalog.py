@@ -40,6 +40,7 @@ class Category(Base):
     )
 
     blurb: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cloudinary_public_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class Product(Base):
@@ -102,3 +103,4 @@ class ProductImage(Base):
     is_primary: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=text("false")
     )
+    cloudinary_public_id: Mapped[str | None] = mapped_column(String(255), nullable=True)

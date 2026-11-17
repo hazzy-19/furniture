@@ -12,6 +12,7 @@ import { useOrderList } from '../context/OrderListContext.jsx'
 import { formatKes } from '../lib/format.js'
 import { buildOrderUrl } from '../lib/whatsapp.js'
 import usePageMeta from '../lib/usePageMeta.js'
+import { cloudinaryUrl } from '../lib/cloudinaryUrl.js'
 
 export default function OrderPage() {
   const { lines, count, total, setQuantity, removeItem, clear } = useOrderList()
@@ -58,7 +59,7 @@ export default function OrderPage() {
                   <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-brand-200 md:h-24 md:w-24">
                     {product.image ? (
                       <img
-                        src={product.image}
+                        src={cloudinaryUrl(product.image, 200)}
                         alt=""
                         loading="lazy"
                         decoding="async"

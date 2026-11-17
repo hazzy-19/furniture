@@ -47,9 +47,13 @@ export default function Header() {
           <div className="text-center">
             <Link
               to="/"
-              className="font-heading text-xl sm:text-2xl md:text-3xl font-semibold tracking-wider text-ink hover:opacity-95 transition-opacity inline-block"
+              className="inline-block transition-opacity hover:opacity-95"
             >
-              Aurelle <span className="text-gold-500">Home</span>
+              <img
+                src="/aurelle-logo.svg"
+                alt="Aurelle Home"
+                className="h-9 w-auto sm:h-10 md:h-11"
+              />
             </Link>
           </div>
 

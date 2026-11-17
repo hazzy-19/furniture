@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Image as ImageIcon } from 'lucide-react'
 import Icon from './Icon.jsx'
 import { useMenu } from '../context/MenuContext.jsx'
+import { cloudinaryUrl } from '../lib/cloudinaryUrl.js'
 
 export default function CategoryTiles() {
   const { rooms } = useMenu()
@@ -24,7 +25,7 @@ export default function CategoryTiles() {
             >
               {room.image ? (
                 <img
-                  src={room.image}
+                  src={cloudinaryUrl(room.image, 400)}
                   alt=""
                   loading="lazy"
                   decoding="async"

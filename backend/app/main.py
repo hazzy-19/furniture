@@ -7,7 +7,15 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.routers import admin_content, admin_products, admin_auth, catalog, content, subscribers, admin_uploads
+from app.routers import (
+    admin_auth,
+    admin_content,
+    admin_products,
+    admin_uploads,
+    catalog,
+    content,
+    subscribers,
+)
 
 is_development = settings.environment.lower() == "development"
 

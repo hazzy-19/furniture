@@ -6,13 +6,13 @@ export const config = {
     currency: 'KES',
   },
   contact: {
-    phone: '+254 700 000 000',
-    email: 'hello@aurellehome.co.ke',
-    locations: 'Nairobi & Mombasa Showrooms',
+    phone: '+254 ',
+    email: 'unclaimedtechnologies@gmail.com',
+    locations: 'Kisii & Kisumu Showrooms',
   },
   whatsapp: {
     // Placeholder Kenyan phone number (+254...)
-    phoneNumber: '+254700000000',
+    phoneNumber: '+254757611486',
     generalInquiry: 'Hello Aurelle Home, I would like to inquire about your furniture collection.',
     productInquiry: (productName, price) =>
       `Hello Aurelle Home, I am interested in the ${productName} (KES ${typeof price === 'number' ? price.toLocaleString() : price}). Could you share details on availability and ordering?`,

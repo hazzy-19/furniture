@@ -18,6 +18,7 @@ class AdminCategoryCreate(BaseModel):
     )
     blurb: str | None = Field(default=None, max_length=2000)
     image_url: str | None = Field(default=None, max_length=2048)
+    cloudinary_public_id: str | None = Field(default=None, max_length=255)
     parent_slug: str | None = Field(default=None, max_length=180)
     sort_order: int = 0
 
@@ -39,6 +40,7 @@ class AdminCategoryUpdate(BaseModel):
     )
     blurb: str | None = Field(default=None, max_length=2000)
     image_url: str | None = Field(default=None, max_length=2048)
+    cloudinary_public_id: str | None = Field(default=None, max_length=255)
     parent_slug: str | None = Field(default=None, max_length=180)
     sort_order: int | None = None
 
@@ -54,6 +56,7 @@ class AdminCategoryResponse(BaseModel):
     slug: str
     blurb: str | None = None
     image_url: str | None = None
+    cloudinary_public_id: str | None = None
     parent_id: str | None = None
     parent_slug: str | None = None
     parent_name: str | None = None
@@ -78,6 +81,8 @@ class AdminHeroUpdate(BaseModel):
     badge: str | None = Field(default=None, max_length=100)
     image_desktop: str = Field(min_length=1, max_length=2048)
     image_mobile: str = Field(min_length=1, max_length=2048)
+    cloudinary_public_id_desktop: str | None = Field(default=None, max_length=255)
+    cloudinary_public_id_mobile: str | None = Field(default=None, max_length=255)
     is_active: bool = True
 
 
@@ -98,4 +103,6 @@ class AdminHeroResponse(BaseModel):
     badge: str | None = None
     image_desktop: str
     image_mobile: str
+    cloudinary_public_id_desktop: str | None = None
+    cloudinary_public_id_mobile: str | None = None
     is_active: bool

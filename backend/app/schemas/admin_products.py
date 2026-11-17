@@ -77,14 +77,33 @@ class AdminProductUpdate(BaseModel):
 
 
 class AdminProductImageCreate(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    model_config = ConfigDict(
+        populate_by_name=True,
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
 
     url: str = Field(min_length=1, max_length=2048)
     alt: str | None = Field(default=None, max_length=255)
+    cloudinary_public_id: str | None = Field(
+        default=None,
+        alias="cloudinaryPublicId",
+        max_length=255,
+    )
 
 
 class AdminProductImageUpdate(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    model_config = ConfigDict(
+        populate_by_name=True,
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
 
+    url: str | None = Field(default=None, max_length=2048)
     alt: str | None = Field(default=None, max_length=255)
     is_primary: bool | None = Field(default=None, alias="isPrimary")
+    cloudinary_public_id: str | None = Field(
+        default=None,
+        alias="cloudinaryPublicId",
+        max_length=255,
+    )

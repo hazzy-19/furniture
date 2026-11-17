@@ -8,7 +8,15 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.20.1",
+    "email-validator>=2.3.0",
     "fastapi>=0.162.4",
+    "psycopg[binary]>=3.3.8",
+    "pydantic-settings>=2.16.2",
+    "pwdlib[argon2]>=0.3.1",
+    "PyJWT>=2.15.1",
+    "python-dotenv>=1.2.4",
+    "SQLAlchemy>=2.1.8",
     "uvicorn[standard]>=0.54.0",
 ]
 
