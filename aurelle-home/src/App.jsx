@@ -18,6 +18,8 @@ const AdminLayout = lazy(() => import('./pages/admin/AdminLayout.jsx'))
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts.jsx'))
 const AdminProductForm = lazy(() => import('./pages/admin/AdminProductForm.jsx'))
 const AdminContent = lazy(() => import('./pages/admin/AdminContent.jsx'))
+const CategoriesPage = lazy(() => import('./admin/pages/CategoriesPage.jsx'))
+const CategoryForm = lazy(() => import('./admin/pages/CategoryForm.jsx'))
 
 function App() {
   return (
@@ -35,6 +37,9 @@ function App() {
                     <Route path="products" element={<AdminProducts />} />
                     <Route path="products/new" element={<AdminProductForm />} />
                     <Route path="products/:id" element={<AdminProductForm />} />
+                    <Route path="categories" element={<CategoriesPage />} />
+                    <Route path="categories/new" element={<CategoryForm />} />
+                    <Route path="categories/:id" element={<CategoryForm />} />
                     <Route path="content" element={<AdminContent />} />
                   </Route>
 

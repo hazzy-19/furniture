@@ -43,6 +43,12 @@ export default function AdminLayout() {
               Products
             </Link>
             <Link
+              to="/admin/categories"
+              className="font-medium text-brand-700 hover:underline"
+            >
+              Categories
+            </Link>
+            <Link
               to="/admin/content"
               className="font-medium text-brand-700 hover:underline"
             >

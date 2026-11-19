@@ -9,8 +9,12 @@ from app.config import settings
 from app.database import get_db
 from app.routers import (
     admin_auth,
-    admin_content,
+    admin_categories,
+    
+    admin_hero,
     admin_products,
+    admin_promos,
+    admin_showrooms,
     admin_uploads,
     catalog,
     content,
@@ -39,8 +43,11 @@ app.include_router(content.router)
 app.include_router(subscribers.router)
 app.include_router(admin_auth.router)
 app.include_router(admin_products.router)
+app.include_router(admin_categories.router)
+app.include_router(admin_promos.router)
+app.include_router(admin_hero.router)
+app.include_router(admin_showrooms.router)
 app.include_router(admin_uploads.router)
-app.include_router(admin_content.router)
 
 
 @app.get("/health")

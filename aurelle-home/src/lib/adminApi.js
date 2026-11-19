@@ -220,37 +220,89 @@ export function getMenu() {
 }
 
 export function listAdminCategories() {
-  return request('/api/admin/content/categories')
+  return request('/api/admin/categories')
+}
+
+export function getAdminCategory(id) {
+  return request(`/api/admin/categories/${id}`)
 }
 
 export function createAdminCategory(payload) {
-  return request('/api/admin/content/categories', {
+  return request('/api/admin/categories', {
     method: 'POST',
     body: payload,
   })
 }
 
 export function updateAdminCategory(id, payload) {
-  return request(`/api/admin/content/categories/${id}`, {
+  return request(`/api/admin/categories/${id}`, {
     method: 'PATCH',
     body: payload,
   })
 }
 
 export function deleteAdminCategory(id) {
-  return request(`/api/admin/content/categories/${id}`, {
+  return request(`/api/admin/categories/${id}`, {
     method: 'DELETE',
   })
 }
 
 export function getAdminHero() {
-  return request('/api/admin/content/hero')
+  return request('/api/admin/hero')
 }
 
 export function saveAdminHero(payload) {
-  return request('/api/admin/content/hero', {
+  return request('/api/admin/hero', {
     method: 'PUT',
     body: payload,
+  })
+}
+
+export function listAdminPromos() {
+  return request('/api/admin/promos')
+}
+
+export function createAdminPromo(payload) {
+  return request('/api/admin/promos', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export function updateAdminPromo(id, payload) {
+  return request(`/api/admin/promos/${id}`, {
+    method: 'PATCH',
+    body: payload,
+  })
+}
+
+export function deleteAdminPromo(id) {
+  return request(`/api/admin/promos/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+export function listAdminShowrooms() {
+  return request('/api/admin/showrooms')
+}
+
+export function createAdminShowroom(payload) {
+  return request('/api/admin/showrooms', {
+    method: 'POST',
+    body: payload,
+  })
+}
+
+export function updateAdminShowroom(id, payload) {
+  return request(`/api/admin/showrooms/${id}`, {
+    method: 'PATCH',
+    body: payload,
+  })
+}
+
+export function deleteAdminShowroom(id) {
+  return request(`/api/admin/showrooms/${id}`, {
+    method: 'DELETE',
   })
 }
 
